@@ -338,7 +338,8 @@ class MainWindow(QMainWindow):
                     f"车上运行 {r.total_run:.0f} 分钟 ｜ 站外/换乘步行 {r.total_walk:.0f} 分钟<br>"
                     f"换乘 {r.transfer_count} 次 ｜ {r.line_count} 条线路 ｜ 共 {sum(s.stop_count for s in r.segments)} 站")
                 self.timeline.set_segments(
-                    [(s.line.short_name, s.line.color, s.run_minutes) for s in r.segments])
+                    [(s.line.short_name, s.step.color or s.line.color, s.run_minutes)
+                     for s in r.segments])
                 return
             except Exception as ex:
                 self.lbl_stat.setText(f"方案存在问题：{ex}")
@@ -353,7 +354,21 @@ class MainWindow(QMainWindow):
         self.trip.city = self.cb_city.currentText()
 
     def _new_trip(self):
-        self.trip = Trip(city=self.cb_city.currentText())
+        if self.trip.steps:
+            ret = QMessageBox.question(
+                self, "新建方案", "是否先将当前方案保存为 JSON 文件？",
+                QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel,
+                QMessageBox.Yes)
+            if ret == QMessageBox.Cancel:
+                return
+            if ret == QMessageBox.Yes:
+                self._save_trip()
+        self.trip.name = "我的运转方案"
+        self.trip.date = ""
+        self.trip.city = self.cb_city.currentText()
+        self.trip.note = ""
+        self.trip.transfer_walk_default = 5.0
+        self.trip.steps.clear()
         self.current_pos = None
         self.ed_name.setText("我的运转方案")
         self.ed_date.clear()
@@ -380,7 +395,7 @@ class MainWindow(QMainWindow):
         self.ed_date.setText(self.trip.date)
         self.cb_city.setCurrentText(self.trip.city)
         self._fix_current_pos()
-        self._after_steps_changed()
+        self._sync_panel()
 
     def _on_city_changed(self, name: str):
         if not name:

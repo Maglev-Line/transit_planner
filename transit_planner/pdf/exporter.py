@@ -101,8 +101,10 @@ class PDFExporter:
     # ---------- 分段卡 ----------
     def _step_flowables(self, seg: SegmentResult, idx: int, st: dict):
         line = seg.line
-        bg = to_color(line.color)
-        fg = text_color_for_bg(line.color)
+        eff_color = seg.step.color or line.color
+        eff_color2 = seg.step.color2 or line.color2
+        bg = to_color(eff_color)
+        fg = text_color_for_bg(eff_color)
 
         name_para = Paragraph(
             f"{line.name}  <font color='white'>█</font> "
@@ -111,8 +113,8 @@ class PDFExporter:
         # 区块内容
         inner = []
         inner.append(Paragraph(
-            f"{seg.step.from_station} <font color='{line.color}'>→</font> {seg.step.to_station}"
-            f"　|　方向：<b>{seg.direction.label}</b>　|　<font color='{line.color}'><b>{fmt_minutes(seg.run_minutes)}</b></font>"
+            f"{seg.step.from_station} <font color='{eff_color}'>→</font> {seg.step.to_station}"
+            f"　|　方向：<b>{seg.direction.label}</b>　|　<font color='{eff_color}'><b>{fmt_minutes(seg.run_minutes)}</b></font>"
             f"　|　{seg.stop_count} 站",
             st["band_sub"]))
         if seg.manual:
@@ -147,7 +149,7 @@ class PDFExporter:
             [Paragraph(f"{idx}", ParagraphStyle("idx", fontName=self.font_bold, fontSize=16, leading=20,
                                                 alignment=TA_CENTER, textColor=fg))],
         ]
-        color2 = to_color(line.color2) if line.color2 else None
+        color2 = to_color(eff_color2) if eff_color2 else None
         if color2 is not None:
             band_rows.append([Paragraph("", ParagraphStyle("stripe", fontName=self.font, fontSize=4))])
         band_tbl = Table(band_rows, colWidths=[12 * mm])
@@ -231,9 +233,11 @@ class PDFExporter:
         cells = []
         stripe = []
         for i, seg in enumerate(result.segments):
+            eff_color = seg.step.color or seg.line.color
+            fg = text_color_for_bg(eff_color)
             cells.append(Paragraph(f"{seg.line.short_name}\n{fmt_minutes(seg.run_minutes)}",
                                    ParagraphStyle("tl", fontName=self.font, fontSize=7, leading=9,
-                                                  alignment=TA_CENTER)))
+                                                  alignment=TA_CENTER, textColor=fg)))
             stripe.append(Paragraph("", ParagraphStyle("tl_stripe", fontName=self.font, fontSize=3)))
             seg_cols.append(max(20, 4 + int(seg.run_minutes / total * 900)))  # 按时长成比例
         rows = [cells, stripe]
@@ -248,12 +252,14 @@ class PDFExporter:
             ("MINIMUMHEIGHT", (0, 1), (-1, 1), 4),
         ]
         for i, seg in enumerate(result.segments):
-            bg = to_color(seg.line.color)
-            fg = text_color_for_bg(seg.line.color)
+            eff_color = seg.step.color or seg.line.color
+            eff_color2 = seg.step.color2 or seg.line.color2
+            bg = to_color(eff_color)
+            fg = text_color_for_bg(eff_color)
             style.append(("TEXTCOLOR", (i, 0), (i, 0), fg))
             style.append(("BACKGROUND", (i, 0), (i, 0), bg))
-            if seg.line.color2:
-                style.append(("BACKGROUND", (i, 1), (i, 1), to_color(seg.line.color2)))
+            if eff_color2:
+                style.append(("BACKGROUND", (i, 1), (i, 1), to_color(eff_color2)))
             else:
                 style.append(("BACKGROUND", (i, 1), (i, 1), bg))
         tbl.setStyle(TableStyle(style))

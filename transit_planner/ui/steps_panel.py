@@ -86,7 +86,7 @@ class StepsPanel(QWidget):
         if self.city is not None:
             try:
                 ln = self.city.line(s.line_id)
-                return ln.name, ln.color, ln.color2
+                return ln.name, (s.color or ln.color), (s.color2 or ln.color2)
             except Exception:
                 pass
         return (s.line_name or s.line_id), "#888888", ""

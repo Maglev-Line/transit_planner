@@ -1377,8 +1377,8 @@
       "name": "上海磁浮线",
       "short_name": "磁浮",
       "type": "maglev",
-      "color": "#C8102E",
-      "color2": "#FFFFFF",
+      "color": "#026419",
+      "color2": "#cc4400",
       "operator": "上海磁浮交通发展有限公司",
       "stations": [
         "龙阳路",
@@ -1387,8 +1387,8 @@
       "travel_minutes": [
         8.0
       ],
-      "headway_rush": 15,
-      "headway_normal": 20,
+      "headway_rush": 15.0,
+      "headway_normal": 20.0,
       "first_train": "06:45",
       "last_train": "21:40",
       "ring": false,

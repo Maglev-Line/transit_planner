@@ -381,8 +381,9 @@ class AddStepDialog(QDialog):
                 step.line_name = ""
                 step.run_minutes = None
                 step.stops_text = ""
-                step.color = ""
-                step.color2 = ""
+                # 数据库线路：颜色/副色允许单独覆盖（未手动改时即为数据库值）
+                step.color = self._manual_color
+                step.color2 = self._manual_color2
                 step.headway_text = ""
                 return step
             # 推荐命中但起终点不在该线上 → 退化为手动，套用该线路名称与颜色
