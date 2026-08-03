@@ -146,9 +146,13 @@ class StepsPanel(QWidget):
                 lines.append("经停站：" + " → ".join(E.parse_stops(s.stops_text)))
         if s.note:
             lines.append(f"备注/车次：{s.note}")
+        if s.use_timetable:
+            lines.append("⏱ 按时刻表乘坐列车")
         if s.timetable:
             tt = "　".join(f"{t[0]} {t[1]}→{t[2]}" for t in s.timetable)
             lines.append(f"时刻表：{tt}")
+        if s.price is not None:
+            lines.append(f"票价：¥{s.price:.2f}")
         return "<br>".join(lines)
 
     # ---------------- 换乘步行 ----------------

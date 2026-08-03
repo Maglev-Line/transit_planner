@@ -125,13 +125,17 @@ class PDFExporter:
             if seg.step.note:
                 parts.append(f"备注/车次：{seg.step.note}")
             inner.append(Paragraph("　|　".join(parts), st["band_sub"]))
-            if seg.step.timetable:
-                inner.append(self._timetable_flowable(seg.step, st))
         else:
             inner.append(Paragraph(
                 f"发车班次：{line.headway_text}" +
                 (f"　|　首班 {line.first_train} / 末班 {line.last_train}" if line.first_train else ""),
                 st["band_sub"]))
+        if seg.step.use_timetable:
+            inner.append(Paragraph("⏱ 按时刻表乘坐列车", st["band_sub"]))
+            if seg.step.timetable:
+                inner.append(self._timetable_flowable(seg.step, st))
+        if seg.step.price is not None:
+            inner.append(Paragraph(f"票价：<b>¥{seg.step.price:.2f}</b>", st["band_sub"]))
         stops_txt = '  →  '.join(seg.stops) if seg.stops else '（未填写经停站）'
         inner.append(Paragraph(f"经停站：{stops_txt}", st["body_sm"]))
         inner_tbl = Table([[inner]], colWidths=[170 * mm])
@@ -294,12 +298,14 @@ class PDFExporter:
         flow.append(Spacer(1, 4))
 
         # 汇总表
+        price_total = sum(s.price for s in trip.steps if s.price is not None)
+        price_cell = f"¥{price_total:.2f}" if price_total else "—"
         summary = Table([
-            ["全程总时长", "车上运行", "换乘步行", "换乘次数", "线路数", "总站数"],
+            ["全程总时长", "车上运行", "换乘步行", "换乘次数", "线路数", "总站数", "总票价"],
             [fmt_minutes(result.total_minutes), fmt_minutes(result.total_run),
              fmt_minutes(result.total_walk), f"{result.transfer_count} 次",
-             f"{result.line_count} 条", f"{sum(s.stop_count for s in result.segments)} 站"],
-        ], colWidths=[doc.width / 6] * 6)
+             f"{result.line_count} 条", f"{sum(s.stop_count for s in result.segments)} 站", price_cell],
+        ], colWidths=[doc.width / 7] * 7)
         summary.setStyle(TableStyle([
             ("FONTNAME", (0, 0), (-1, -1), self.font),
             ("FONTNAME", (0, 1), (-1, 1), self.font_bold),

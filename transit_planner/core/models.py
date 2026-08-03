@@ -205,6 +205,8 @@ class Step:
     note: str = ""
     headway_text: str = ""            # 手动发车班次文字（如"高峰8/平峰15 分钟一班"）
     timetable: list = field(default_factory=list)  # 时刻表：[[车次, 发时, 到时], ...]
+    use_timetable: bool = False       # 按时刻表乘坐列车（勾选后启用时刻表编辑）
+    price: float | None = None        # 票价(元)，手动输入
 
     def to_dict(self) -> dict:
         return {
@@ -222,6 +224,8 @@ class Step:
             "note": self.note,
             "headway_text": self.headway_text,
             "timetable": self.timetable,
+            "use_timetable": self.use_timetable,
+            "price": self.price,
         }
 
     @classmethod
@@ -241,6 +245,8 @@ class Step:
             note=data.get("note", ""),
             headway_text=data.get("headway_text", ""),
             timetable=data.get("timetable", []),
+            use_timetable=data.get("use_timetable", False),
+            price=data.get("price"),
         )
 
 

@@ -3,40 +3,71 @@
 
 默认「手动输入」：线路名 + 到发站为必填，其余选填。
 输入线路名时按当前城市线路库给出推荐；选中推荐后自动套用数据库全部信息。
+未在本地命中时，若已配置在线地图 API，则可从地图获取线路经停站、首末班等线路信息。
 """
 from __future__ import annotations
 
-from PySide6.QtCore import Qt, QStringListModel
-from PySide6.QtGui import QColor
+from PySide6.QtCore import Qt, QStringListModel, QTimer, QUrl
+from PySide6.QtGui import QColor, QDesktopServices
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QGridLayout, QHBoxLayout, QComboBox, QLineEdit,
     QLabel, QPushButton, QDoubleSpinBox, QTableWidget, QTableWidgetItem,
-    QColorDialog, QGroupBox, QMessageBox, QCompleter,
+    QColorDialog, QGroupBox, QMessageBox, QCompleter, QCheckBox,
 )
 
 from ..core import engine as E
-from ..core.models import Line, Step
+from ..core.models import Line, Step, TYPE_METRO
+from ..core.railway import build_12306_url
+from ..core.settings import AppSettings
+from ..providers.online import BaseMapProvider, OnlineProviderError, build_providers
 
 DEFAULT_COLOR = "#888888"
+
+
+def _parse_hhmm(text: str) -> int | None:
+    """解析 'HH:MM' 返回当天分钟数；失败返回 None。"""
+    t = (text or "").strip()
+    if ":" not in t:
+        return None
+    parts = t.split(":")
+    if len(parts) != 2:
+        return None
+    try:
+        h, m = int(parts[0]), int(parts[1])
+        if 0 <= h <= 23 and 0 <= m <= 59:
+            return h * 60 + m
+    except ValueError:
+        pass
+    return None
 
 
 class AddStepDialog(QDialog):
     """添加（step=None）或编辑（step=现有）一段行程。"""
 
-    def __init__(self, city, parent=None, step: Step | None = None):
+    def __init__(self, city, parent=None, step: Step | None = None,
+                 settings: AppSettings | None = None, city_label: str = "",
+                 prefill_favorite: bool = False):
         super().__init__(parent)
         self.city = city
+        self.city_label = city_label
+        self.settings = settings or AppSettings.load()
+        self._prefill_favorite = prefill_favorite
         self._step = step
         self._matched_line: Line | None = None
+        self._api_matched = False
         self._manual_color = DEFAULT_COLOR
         self._manual_color2 = ""
+        self._providers: list[BaseMapProvider] = build_providers(self.settings)
+        self._api_result_map: dict[str, Line] = {}
+        self._api_timer: QTimer | None = None
         self.setWindowTitle("编辑行程" if step is not None else "添加行程")
-        self.resize(620, 660)
+        self.resize(620, 720)
         self._build_ui()
         if step is not None:
             self._load_step(step)
         else:
             self._populate_station_combos()
+            self._favorite_prefill()
 
     # ---------------- 界面 ----------------
     def _build_ui(self):
@@ -117,23 +148,61 @@ class AddStepDialog(QDialog):
         self.btn_color2.clicked.connect(self._pick_color2)
         form.addWidget(self.btn_color2, 6, 3)
 
+        # 票价
+        form.addWidget(QLabel("票价(元)（选填）"), 7, 0)
+        self.sp_price = QDoubleSpinBox()
+        self.sp_price.setRange(0, 10000)
+        self.sp_price.setDecimals(2)
+        self.sp_price.setSpecialValueText("未知/未填写")
+        self.sp_price.setToolTip("本段行程票价，手动输入")
+        form.addWidget(self.sp_price, 7, 1)
+        lbl_price_tip = QLabel("每段行程的票价；汇总时自动求和")
+        lbl_price_tip.setStyleSheet("color:#999;font-size:8pt;")
+        form.addWidget(lbl_price_tip, 7, 2, 1, 2)
+
         root.addLayout(form)
 
         # 时刻表
-        tt_group = QGroupBox("时刻表（选填，如国铁车次发到时刻）")
+        tt_group = QGroupBox("发车方式")
         tt_v = QVBoxLayout(tt_group)
+
+        tt_top = QHBoxLayout()
+        self.chk_tt = QCheckBox("按时刻表乘坐列车（国铁等固定班次）")
+        self.chk_tt.setToolTip("勾选后可编辑时刻表，并自动根据发时/到时计算运行时长")
+        self.chk_tt.toggled.connect(self._on_tt_toggled)
+        tt_top.addWidget(self.chk_tt)
+        tt_top.addStretch(1)
+        self.lbl_12306 = QLabel('<a href="#" style="color:#0066aa;">铁路12306 查询本车次</a>')
+        self.lbl_12306.setTextFormat(Qt.RichText)
+        self.lbl_12306.setToolTip("点击跳转到铁路12306，按本段发站/到站查询车次信息")
+        self.lbl_12306.linkActivated.connect(lambda *_: self._open_12306())
+        tt_top.addWidget(self.lbl_12306)
+        tt_v.addLayout(tt_top)
+
+        self.lbl_tt_hint = QLabel("未勾选时表示公交化运营（按固定间隔发车），无需填写时刻表。")
+        self.lbl_tt_hint.setWordWrap(True)
+        self.lbl_tt_hint.setStyleSheet("color:#666;font-size:8.5pt;")
+        tt_v.addWidget(self.lbl_tt_hint)
+
         self.table_tt = QTableWidget(0, 3)
         self.table_tt.setHorizontalHeaderLabels(["车次", "发时", "到时"])
+        self.table_tt.setEnabled(False)
+        self.table_tt.itemChanged.connect(self._on_tt_edit)
         tt_v.addWidget(self.table_tt)
         tt_row = QHBoxLayout()
         b = QPushButton("＋ 添加车次")
         b.clicked.connect(lambda: self.table_tt.insertRow(self.table_tt.rowCount()))
+        self.btn_tt_add = b
         tt_row.addWidget(b)
         b = QPushButton("删除选中行")
         b.clicked.connect(self._del_tt_row)
+        self.btn_tt_del = b
         tt_row.addWidget(b)
         tt_row.addStretch(1)
         tt_v.addLayout(tt_row)
+        self.lbl_tt_auto = QLabel("")
+        self.lbl_tt_auto.setStyleSheet("color:#1a73e8;font-size:8.5pt;")
+        tt_v.addWidget(self.lbl_tt_auto)
         root.addWidget(tt_group, 1)
 
         # 确定 / 取消
@@ -164,9 +233,67 @@ class AddStepDialog(QDialog):
 
     def _update_suggestions(self, text: str):
         lines = self._line_matches(text)
-        self._sug_model.setStringList([ln.name for ln in lines])
+        self._api_result_map.clear()
+        if lines:
+            self._stop_api_timer()
+            self._sug_model.setStringList([ln.name for ln in lines])
+            return
+        self._sug_model.setStringList([])
+        if self._providers and len(text.strip()) >= 2:
+            self._start_api_search(text)
+
+    def _stop_api_timer(self):
+        if self._api_timer is not None:
+            self._api_timer.stop()
+            try:
+                self._api_timer.timeout.disconnect()
+            except TypeError:
+                pass
+
+    def _start_api_search(self, text: str):
+        if self._api_timer is None:
+            self._api_timer = QTimer(self)
+            self._api_timer.setSingleShot(True)
+        else:
+            try:
+                self._api_timer.timeout.disconnect()
+            except TypeError:
+                pass
+        self._api_timer.timeout.connect(lambda: self._api_search(text))
+        self.lbl_reco.setText("本地无匹配线路，正在查询在线地图…")
+        self._api_timer.start(400)
+
+    def _api_search(self, text: str):
+        city = self.city.name if self.city is not None else (self.city_label or "")
+        if not city:
+            self.lbl_reco.setText("请先在主窗口选择城市，再使用在线地图查询线路。")
+            return
+        labels: list[str] = []
+        for prov in self._providers:
+            try:
+                lines = prov.search_lines(city, text)
+            except OnlineProviderError as ex:
+                self.lbl_reco.setText(str(ex))
+                return
+            except Exception as ex:
+                self.lbl_reco.setText(f"{prov.display_name}地图查询失败：{ex}")
+                return
+            for ln in lines:
+                label = f"{ln.name}（来自{prov.display_name}地图）"
+                self._api_result_map[label] = ln
+                labels.append(label)
+            if labels:
+                break
+        if labels:
+            self._sug_model.setStringList(labels)
+            self.lbl_reco.setText("已从在线地图获取线路，选中后自动套用经停站/首末班等信息。")
+        else:
+            self.lbl_reco.setText("在线地图未找到匹配线路，请核对线路名，或改用手动输入。")
 
     def _on_suggestion_activated(self, text: str):
+        if text in self._api_result_map:
+            self._apply_api_line(self._api_result_map[text])
+            return
         if self.city is None:
             return
         for ln in self.city.lines:
@@ -174,9 +301,50 @@ class AddStepDialog(QDialog):
                 self._apply_recommendation(ln)
                 return
 
+    def _apply_api_line(self, line: Line):
+        """套用在线地图获取的线路信息（未入库，保存时按手动段处理）。"""
+        self._matched_line = line
+        self._api_matched = True
+        self.ed_name.setText(line.name)
+        self._apply_color(line.color)
+        self._apply_color2(line.color2)
+        self.cb_dir.blockSignals(True)
+        self.cb_dir.clear()
+        for d in line.directions:
+            self.cb_dir.addItem(d.label)
+        self.cb_dir.blockSignals(False)
+        self._populate_station_combos()
+        meta = f"已从在线地图获取：{line.name}"
+        if line.first_train or line.last_train:
+            meta += f"（首班 {line.first_train} / 末班 {line.last_train}）"
+        meta += " · 地铁" if line.type == TYPE_METRO else " · 公交"
+        self.lbl_reco.setText(meta + "（经停站与时长已自动填写）")
+
+    def _stops_and_minutes(self, line: Line, from_st: str, to_st: str):
+        """在线线路：按起终点返回 (经停站列表, 运行分钟)。"""
+        try:
+            from_idx = line.station_index(from_st)
+            to_idx = line.station_index(to_st)
+        except Exception:
+            return [from_st, to_st], None
+        if from_idx == to_idx:
+            return [from_st], None
+        sign = 1 if from_idx < to_idx else -1
+        indices = list(range(from_idx, to_idx + sign, sign))
+        stops = [line.stations[i] for i in indices]
+        tm = line.travel_minutes
+        minutes = 0.0
+        if tm:
+            if sign > 0:
+                minutes = sum(tm[i] for i in range(from_idx, to_idx))
+            else:
+                minutes = sum(tm[i] for i in range(to_idx, from_idx))
+        return stops, (minutes or None)
+
     def _apply_recommendation(self, line: Line):
         """选中推荐线路：自动套用数据库全部信息（含发车班次）。"""
         self._matched_line = line
+        self._api_matched = False
         self.ed_name.setText(line.name)
         self._apply_color(line.color)
         self._apply_color2(line.color2)
@@ -242,6 +410,19 @@ class AddStepDialog(QDialog):
         else:
             self.sp_min.setSpecialValueText("未知/自动")
 
+    # ---------------- 常用出行预填 ----------------
+    def _favorite_prefill(self):
+        """新建方案第一段行程时，按设置中的最常出行地铁站预填起点站。"""
+        if not self._prefill_favorite:
+            return
+        s = self.settings
+        if not s or not s.favorite_metro:
+            return
+        if self.city is not None and s.favorite_city and self.city.name != s.favorite_city:
+            return  # 当前城市与常用城市不一致时不预填
+        if not self.cb_from.currentText().strip():
+            self.cb_from.setEditText(s.favorite_metro)
+
     # ---------------- 颜色 ----------------
     def _pick_color(self):
         color = QColorDialog.getColor(QColor(self._manual_color))
@@ -284,6 +465,55 @@ class AddStepDialog(QDialog):
                 out.append(vals)
         return out
 
+    def _on_tt_toggled(self, checked: bool):
+        """勾选『按时刻表乘坐列车』后启用时刻表编辑。"""
+        self.table_tt.setEnabled(checked)
+        self.btn_tt_add.setEnabled(checked)
+        self.btn_tt_del.setEnabled(checked)
+        self.lbl_12306.setVisible(checked)
+        if checked:
+            self.lbl_tt_hint.setText("勾选后按固定车次乘坐；运行时长由发时/到时自动计算。")
+            self._recompute_from_timetable()
+        else:
+            self.lbl_tt_hint.setText("未勾选时表示公交化运营（按固定间隔发车），无需填写时刻表。")
+            self.lbl_tt_auto.clear()
+
+    def _on_tt_edit(self, _item):
+        if self.chk_tt.isChecked():
+            self._recompute_from_timetable()
+
+    def _cell_text(self, r: int, c: int) -> str:
+        item = self.table_tt.item(r, c)
+        return item.text().strip() if item else ""
+
+    def _recompute_from_timetable(self):
+        """根据时刻表首个有效行（发时+到时）自动计算运行时长。"""
+        first_ok: int | None = None
+        for r in range(self.table_tt.rowCount()):
+            dep, arr = self._cell_text(r, 1), self._cell_text(r, 2)
+            if dep and arr:
+                d, a = _parse_hhmm(dep), _parse_hhmm(arr)
+                if d is not None and a is not None:
+                    dur = a - d
+                    if dur <= 0:
+                        dur += 24 * 60  # 跨零点
+                    first_ok = dur
+                    break
+        if first_ok is not None:
+            self.sp_min.setValue(float(first_ok))
+            self.lbl_tt_auto.setText(f"已按发时/到时自动计算运行时长：{first_ok} 分钟（可不再手输）")
+        else:
+            self.lbl_tt_auto.clear()
+
+    def _open_12306(self):
+        from_st = self.cb_from.currentText().strip()
+        to_st = self.cb_to.currentText().strip()
+        if not from_st or not to_st:
+            QMessageBox.information(self, "提示", "请先填写起点站与到达站，再查询 12306 车次。")
+            return
+        url = build_12306_url(from_st, to_st)
+        QDesktopServices.openUrl(QUrl(url))
+
     # ---------------- 载入编辑 ----------------	
     def _load_step(self, step: Step):
         self._step = step
@@ -320,12 +550,15 @@ class AddStepDialog(QDialog):
         self.ed_note.setText(step.note)
         self._apply_color(step.color or (matched.color if matched else DEFAULT_COLOR))
         self._apply_color2(step.color2 or (matched.color2 if matched else ""))
+        if step.price is not None:
+            self.sp_price.setValue(step.price)
         self.table_tt.setRowCount(0)
         for row in step.timetable:
             r = self.table_tt.rowCount()
             self.table_tt.insertRow(r)
             for c, val in enumerate(row[:3]):
                 self.table_tt.setItem(r, c, QTableWidgetItem(str(val)))
+        self.chk_tt.setChecked(step.use_timetable)
         self._auto_pick_direction()
 
     # ---------------- 确定 ----------------
@@ -354,11 +587,15 @@ class AddStepDialog(QDialog):
         from_st = self.cb_from.currentText().strip()
         to_st = self.cb_to.currentText().strip()
         direction = self.cb_dir.currentText().strip()
+        use_tt = self.chk_tt.isChecked()
+        if use_tt:
+            self._recompute_from_timetable()  # 按时刻表自动计算运行时长
         run = self.sp_min.value() if self.sp_min.value() > 0 else None
         stops = self.ed_stops.text().strip()
         headway = self.ed_headway.text().strip()
         note = self.ed_note.text().strip()
-        timetable = self._collect_timetable()
+        timetable = self._collect_timetable() if use_tt else []
+        price = self.sp_price.value() if self.sp_price.value() > 0 else None
         step = Step(
             from_station=from_st, to_station=to_st,
             direction_label=direction,
@@ -370,7 +607,28 @@ class AddStepDialog(QDialog):
             note=note,
             headway_text=headway,
             timetable=timetable,
+            use_timetable=use_tt,
+            price=price,
         )
+        if self._matched_line is not None and self._api_matched:
+            # 在线地图线路：未入库，退化为手动段，但自动套用经停站/时长/首末班
+            step.manual = True
+            step.line_name = self._matched_line.name
+            step.color = self._manual_color or self._matched_line.color
+            step.color2 = self._manual_color2 or self._matched_line.color2
+            try:
+                stops_list, minutes = self._stops_and_minutes(self._matched_line, from_st, to_st)
+                step.stops_text = "、".join(stops_list)
+                if minutes is not None:
+                    step.run_minutes = minutes
+            except Exception:
+                pass
+            if not note:
+                info = "来自在线地图"
+                if self._matched_line.first_train or self._matched_line.last_train:
+                    info += f" · 首班 {self._matched_line.first_train} / 末班 {self._matched_line.last_train}"
+                step.note = info
+            return step
         if self._matched_line is not None:
             d = E.pick_direction(self._matched_line, from_st, to_st)
             if d is not None:
@@ -379,7 +637,8 @@ class AddStepDialog(QDialog):
                 step.direction_label = d.label
                 step.manual = False
                 step.line_name = ""
-                step.run_minutes = None
+                # 勾选了按时刻表乘坐时保留按发时/到时计算的时长，否则由数据库计算
+                step.run_minutes = run if use_tt else None
                 step.stops_text = ""
                 # 数据库线路：颜色/副色允许单独覆盖（未手动改时即为数据库值）
                 step.color = self._manual_color

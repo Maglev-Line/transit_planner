@@ -20,12 +20,14 @@ from PySide6.QtWidgets import (
 
 from ..core.models import CityLibrary, Trip, Step, TYPE_LABELS, fmt_minutes
 from ..core import engine as E
+from ..core.settings import AppSettings
 from ..pdf.exporter import export_pdf
-from .. import APP_NAME
+from .. import APP_NAME, __version__
 from .data_editor import DataEditor
 from .add_step_dialog import AddStepDialog
 from .steps_panel import StepsPanel
 from .pdf_config_dialog import PdfConfigDialog
+from .settings_dialog import SettingsDialog
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 
@@ -84,11 +86,14 @@ class MainWindow(QMainWindow):
         self.city = None
         self.result = None
         self.current_pos: str | None = None
+        self.app_settings = AppSettings.load()
 
-        self.setWindowTitle(APP_NAME)
+        self.setWindowTitle(f"{APP_NAME} v{__version__}")
         self.resize(1280, 800)
         self._build_ui()
         self._reload_cities()
+        self._preselect_favorite()
+        self._try_load_autosave()
 
     # ---------------- 界面构建 ----------------
     def _build_ui(self):
@@ -107,11 +112,13 @@ class MainWindow(QMainWindow):
         toolbar.addWidget(QLabel("方案名："))
         self.ed_name = QLineEdit("我的运转方案")
         self.ed_name.setFixedWidth(150)
+        self.ed_name.textChanged.connect(self._auto_save)
         toolbar.addWidget(self.ed_name)
         toolbar.addWidget(QLabel("日期："))
         self.ed_date = QLineEdit()
         self.ed_date.setFixedWidth(100)
         self.ed_date.setPlaceholderText("如 2026-08-01")
+        self.ed_date.textChanged.connect(self._auto_save)
         toolbar.addWidget(self.ed_date)
         toolbar.addStretch(1)
         btn_new = QPushButton("新建")
@@ -126,6 +133,9 @@ class MainWindow(QMainWindow):
         btn_edit = QPushButton("数据编辑")
         btn_edit.clicked.connect(self._open_editor)
         toolbar.addWidget(btn_edit)
+        btn_settings = QPushButton("设置")
+        btn_settings.clicked.connect(self._open_settings)
+        toolbar.addWidget(btn_settings)
         btn_pdf = QPushButton("导出 PDF")
         btn_pdf.clicked.connect(self._export_pdf)
         btn_pdf.setStyleSheet("font-weight:bold;")
@@ -237,6 +247,59 @@ class MainWindow(QMainWindow):
         self._populate_line_list()
         self._sync_panel()
 
+    # ---------------- 设置 / 自动保存 ----------------
+    def _preselect_favorite(self):
+        fav = self.app_settings.favorite_city
+        if fav and fav in self.lib.list_cities() and self.cb_city.currentText() != fav:
+            self.cb_city.setCurrentText(fav)
+
+    def _try_load_autosave(self):
+        if not self.app_settings.auto_save or not self.app_settings.auto_save_dir:
+            return
+        d = Path(self.app_settings.auto_save_dir)
+        if not d.is_dir():
+            return
+        files = sorted(d.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
+        if not files:
+            return
+        try:
+            self.trip = Trip.load(files[0])
+        except Exception:
+            return
+        self.ed_name.setText(self.trip.name)
+        self.ed_date.setText(self.trip.date)
+        self.cb_city.setCurrentText(self.trip.city)
+        self._fix_current_pos()
+        self._sync_panel()
+        self.statusBar().showMessage(f"已载入最近自动保存的方案：{files[0].name}", 4000)
+
+    def _auto_save(self, *_):
+        if not self.app_settings.auto_save or not self.app_settings.auto_save_dir:
+            return
+        if not self.trip.steps:
+            return
+        d = Path(self.app_settings.auto_save_dir)
+        try:
+            d.mkdir(parents=True, exist_ok=True)
+            self._sync_trip_fields()
+            name = self.trip.name or "我的运转方案"
+            for ch in '\\/:*?"<>|':
+                name = name.replace(ch, "_")
+            self.trip.save(d / f"{name}.json")
+        except Exception:
+            pass
+
+    def _open_settings(self):
+        dlg = SettingsDialog(self.lib, self)
+        if dlg.exec():
+            self.app_settings = dlg.settings
+            self._reload_cities()
+            self._preselect_favorite()
+
+    def closeEvent(self, event):
+        self._auto_save()
+        super().closeEvent(event)
+
     def _set_city_none(self, label: str):
         """自定义城市/范围：不关联线路库，纯手动规划。"""
         self.city = None
@@ -284,7 +347,9 @@ class MainWindow(QMainWindow):
         # line 仅来自「双击线路库」传入的 Line 对象；其余情况（如按钮 click 信号）忽略
         if not (line is None or hasattr(line, "id")):
             line = None
-        dlg = AddStepDialog(self.city, self)
+        dlg = AddStepDialog(self.city, self, settings=self.app_settings,
+                            city_label=self.cb_city.currentText(),
+                            prefill_favorite=not self.trip.steps)
         if line is not None:
             dlg.preselect(line)
         if dlg.exec():
@@ -296,7 +361,8 @@ class MainWindow(QMainWindow):
     def _edit_step(self, i: int):
         if not (0 <= i < len(self.trip.steps)):
             return
-        dlg = AddStepDialog(self.city, self, step=self.trip.steps[i])
+        dlg = AddStepDialog(self.city, self, step=self.trip.steps[i],
+                            settings=self.app_settings, city_label=self.cb_city.currentText())
         if dlg.exec():
             step = dlg.result_step()
             if step is not None:
@@ -307,6 +373,7 @@ class MainWindow(QMainWindow):
         self._fix_current_pos()
         self.panel.refresh()
         self._update_hints_and_stats()
+        self._auto_save()
 
     def _clear_steps(self):
         self.trip.steps.clear()
@@ -333,10 +400,13 @@ class MainWindow(QMainWindow):
             try:
                 self.result = E.evaluate_trip(self.city, self.trip)
                 r = self.result
+                price_total = sum(s.price for s in self.trip.steps if s.price is not None)
+                price_txt = f"<br>总票价：<b>¥{price_total:.2f}</b>" if price_total else ""
                 self.lbl_stat.setText(
                     f"<b>全程总时长：{r.total_minutes:.0f} 分钟</b><br>"
                     f"车上运行 {r.total_run:.0f} 分钟 ｜ 站外/换乘步行 {r.total_walk:.0f} 分钟<br>"
-                    f"换乘 {r.transfer_count} 次 ｜ {r.line_count} 条线路 ｜ 共 {sum(s.stop_count for s in r.segments)} 站")
+                    f"换乘 {r.transfer_count} 次 ｜ {r.line_count} 条线路 ｜ 共 {sum(s.stop_count for s in r.segments)} 站"
+                    f"{price_txt}")
                 self.timeline.set_segments(
                     [(s.line.short_name, s.step.color or s.line.color, s.run_minutes)
                      for s in r.segments])
