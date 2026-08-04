@@ -194,6 +194,8 @@ class DataEditor(QDialog):
     def _reload_cities(self):
         self.cities.clear()
         for name in self.lib.list_cities():
+            if self.lib.is_combined(name):
+                continue  # 同城组合为虚拟城市，不在此处编辑
             try:
                 self.cities[name] = self.lib.load(name)
             except Exception:

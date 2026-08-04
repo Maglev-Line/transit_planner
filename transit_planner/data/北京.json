@@ -817,5 +817,16 @@
       ]
     }
   ],
-  "external_walks": {}
+  "external_walks": {},
+  "transfers": [
+    [
+      "北京南站",
+      "北京南"
+    ],
+    [
+      "北京站",
+      "北京"
+    ]
+  ],
+  "aliases": []
 }

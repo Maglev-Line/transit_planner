@@ -5,7 +5,7 @@ from __future__ import annotations
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame,
-    QDoubleSpinBox, QScrollArea,
+    QDoubleSpinBox, QScrollArea, QCheckBox,
 )
 
 from ..core import engine as E
@@ -65,6 +65,10 @@ class StepsPanel(QWidget):
         except Exception as ex:
             self._result = None
             self._eval_error = str(ex)
+        self._zones = {}
+        if self._result is not None:
+            for z in self._result.paid_zones:
+                self._zones[z.index] = z
         if not self.trip.steps:
             lbl = QLabel("尚未添加行程\n\n点击上方「＋ 添加行程」开始规划")
             lbl.setAlignment(Qt.AlignCenter)
@@ -122,6 +126,15 @@ class StepsPanel(QWidget):
         lines = []
         if self._result is not None and i < len(self._result.segments):
             seg = self._result.segments[i]
+            if self.trip.paid_zone_mode:
+                z = self._zones.get(seg.paid_zone_index)
+                if z is not None:
+                    is_entry = z.segments and z.segments[0].step is s
+                    price_txt = f"　票价 ¥{z.price:.2f}" if z.price is not None else ""
+                    marker = "🚇 进闸" if is_entry else "　│"
+                    lines.append(f"{marker} 付费区 {z.index + 1}：{z.entry_station} → {z.exit_station}{price_txt}")
+            if seg.transfer:
+                lines.append("⚠ 转乘（跨付费区，需出闸/换系统）")
             lines.append(
                 f"{_swatch_label(color, color2)}　"
                 f"<b>{seg.step.from_station} → {seg.step.to_station}</b>"
@@ -157,13 +170,13 @@ class StepsPanel(QWidget):
 
     # ---------------- 换乘步行 ----------------
     def _make_walk_row(self, i: int) -> QWidget:
-        """第 i 段与上一段之间的换乘步行配置条。"""
+        """第 i 段与上一段之间的换乘配置条（步行 + 是否跨付费区转乘）。"""
         s = self.trip.steps[i]
         prev_to = self.trip.steps[i - 1].to_station
         w = QWidget()
         h = QHBoxLayout(w)
         h.setContentsMargins(14, 2, 14, 2)
-        lbl = QLabel(f"␣ 换乘步行（{prev_to} → {s.from_station}）：")
+        lbl = QLabel(f"␣ 换乘（{prev_to} → {s.from_station}）：")
         lbl.setStyleSheet("color:#555555;")
         h.addWidget(lbl)
         spin = QDoubleSpinBox()
@@ -172,10 +185,28 @@ class StepsPanel(QWidget):
         if s.walk_minutes is not None:
             spin.setValue(s.walk_minutes)
         else:
-            spin.setValue(E.resolve_walk(s, prev_to, self.trip.transfer_walk_default))
+            spin.setValue(E.resolve_walk(s, prev_to, self.trip.transfer_walk_default, city=self.city))
         h.addWidget(spin)
-        note = QLabel("同站换乘" if prev_to == s.from_station else "站外步行")
-        note.setStyleSheet("color:#999999;")
+
+        eff_transfer = E.step_is_transfer(self.city, prev_to, s)
+        chk = QCheckBox("转乘")
+        chk.setToolTip("跨付费区转车（需出闸/换系统，如 地铁↔国铁）。勾选后本段开始一个新的付费区；"
+                       "地铁线路库中的转乘站（如 上海南站↔上海南）会自动勾选。")
+        chk.blockSignals(True)
+        chk.setChecked(eff_transfer)
+        chk.blockSignals(False)
+        chk.toggled.connect(lambda on, idx=i: self._on_transfer_changed(idx, on))
+        h.addWidget(chk)
+
+        if eff_transfer:
+            note = QLabel("转乘")
+            note.setStyleSheet("color:#c0392b;font-weight:bold;")
+        elif E.stations_same(self.city, prev_to, s.from_station):
+            note = QLabel("同站换乘")
+            note.setStyleSheet("color:#999999;")
+        else:
+            note = QLabel("站外步行")
+            note.setStyleSheet("color:#999999;")
         h.addWidget(note)
         h.addStretch(1)
         spin.valueChanged.connect(lambda val, idx=i: self._on_walk_changed(idx, val))
@@ -184,6 +215,10 @@ class StepsPanel(QWidget):
     def _on_walk_changed(self, i: int, value: float):
         self.trip.steps[i].walk_minutes = value
         self.walk_changed.emit()
+
+    def _on_transfer_changed(self, i: int, on: bool):
+        self.trip.steps[i].transfer = bool(on)
+        self.data_changed.emit()
 
     # ---------------- 卡片操作 ----------------
     def _move_up(self, i: int):

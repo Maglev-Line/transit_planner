@@ -120,6 +120,12 @@ class City:
     version: str = "1.0"
     lines: list[Line] = field(default_factory=list)
     external_walks: dict[str, float] = field(default_factory=dict)  # "A|B" -> 步行分钟
+    transfers: list[list[str]] = field(default_factory=list)
+    # 转乘站组：同一地点、不同名称、分属不同付费系统（如地铁"上海南站"↔国铁"上海南"），
+    # 换乘必须出闸/换系统，应标记为「转乘」。
+    aliases: list[list[str]] = field(default_factory=list)
+    # 同站异名组：同一车站、同一付费系统、仅名称不同（如广州"西塱"↔广佛线"西朗"），
+    # 换乘不出闸，按同站换乘（步行 0 分钟）处理。
 
     def line(self, line_id: str) -> Line:
         for ln in self.lines:
@@ -137,6 +143,8 @@ class City:
             "version": self.version,
             "lines": [ln.to_dict() for ln in self.lines],
             "external_walks": self.external_walks,
+            "transfers": self.transfers,
+            "aliases": self.aliases,
         }
 
     @classmethod
@@ -147,25 +155,69 @@ class City:
             version=data.get("version", "1.0"),
             lines=[Line.from_dict(x) for x in data.get("lines", [])],
             external_walks=data.get("external_walks", {}),
+            transfers=data.get("transfers", []),
+            aliases=data.get("aliases", []),
         )
 
 
 class CityLibrary:
-    """管理多个城市的 JSON 城市库。"""
+    """管理多个城市的 JSON 城市库。
+
+    支持「同城」组合模式：将多座城市的数据在内存中合并为一座虚拟城市
+    （不额外生成大文件），用于上海-苏州 / 广州-佛山 / 珠江三角洲等跨城规划。
+    """
+
+    # 同城组合：键 = 界面显示的城市名，值 = 参与合并的真实城市文件
+    COMBINED_CITIES: dict[str, tuple[str, ...]] = {
+        "上海-苏州": ("上海", "苏州"),
+        "广州-佛山": ("广州", "佛山"),
+        "珠江三角洲": ("广州", "深圳", "佛山", "东莞"),
+    }
 
     def __init__(self, data_dir: str | Path) -> None:
         self.data_dir = Path(data_dir)
         self.data_dir.mkdir(parents=True, exist_ok=True)
 
     def list_cities(self) -> list[str]:
-        return sorted(p.stem for p in self.data_dir.glob("*.json"))
+        files = sorted(p.stem for p in self.data_dir.glob("*.json"))
+        return sorted(set(files) | set(self.COMBINED_CITIES))
+
+    @staticmethod
+    def is_combined(name: str) -> bool:
+        return name in CityLibrary.COMBINED_CITIES
 
     def load(self, city: str) -> City:
+        if city in self.COMBINED_CITIES:
+            return self._load_combined(city)
         path = self.data_dir / f"{city}.json"
         if not path.exists():
             raise FileNotFoundError(f"未找到城市线路库：{path}")
         with path.open("r", encoding="utf-8") as f:
             return City.from_dict(json.load(f))
+
+    def _load_combined(self, key: str) -> City:
+        """合并多座城市为一座虚拟城市（线路/换乘/同站异名全部合并）。"""
+        merged = City(name=key, region="同城组合", version="1.0")
+        line_ids: set[str] = set()
+        for part in self.COMBINED_CITIES[key]:
+            path = self.data_dir / f"{part}.json"
+            if not path.exists():
+                continue
+            with path.open("r", encoding="utf-8") as f:
+                c = City.from_dict(json.load(f))
+            for ln in c.lines:
+                if ln.id in line_ids:
+                    continue  # 避免 ID 冲突
+                line_ids.add(ln.id)
+                merged.lines.append(ln)
+            merged.external_walks.update(c.external_walks)
+            for grp in c.transfers:
+                if grp not in merged.transfers:
+                    merged.transfers.append(grp)
+            for grp in c.aliases:
+                if grp not in merged.aliases:
+                    merged.aliases.append(grp)
+        return merged
 
     def save(self, city: City) -> None:
         path = self.data_dir / f"{city.name}.json"
@@ -207,6 +259,8 @@ class Step:
     timetable: list = field(default_factory=list)  # 时刻表：[[车次, 发时, 到时], ...]
     use_timetable: bool = False       # 按时刻表乘坐列车（勾选后启用时刻表编辑）
     price: float | None = None        # 票价(元)，手动输入
+    transfer: bool | None = None      # 跨付费区转乘（转乘）：上车前需出闸/换系统。
+                                     # None=自动（按数据中的转乘站组判定）；True/False=用户强制指定。
 
     def to_dict(self) -> dict:
         return {
@@ -226,6 +280,7 @@ class Step:
             "timetable": self.timetable,
             "use_timetable": self.use_timetable,
             "price": self.price,
+            "transfer": self.transfer,
         }
 
     @classmethod
@@ -247,6 +302,7 @@ class Step:
             timetable=data.get("timetable", []),
             use_timetable=data.get("use_timetable", False),
             price=data.get("price"),
+            transfer=data.get("transfer"),
         )
 
 
@@ -258,6 +314,7 @@ class Trip:
     city: str = "上海"
     note: str = ""
     transfer_walk_default: float = 5.0   # 默认换乘/站外步行分钟
+    paid_zone_mode: bool = False         # 付费区模式：按进闸站→出闸站计费，跨付费区转车标记「转乘」
     steps: list[Step] = field(default_factory=list)
 
     def to_dict(self) -> dict:
@@ -267,6 +324,7 @@ class Trip:
             "city": self.city,
             "note": self.note,
             "transfer_walk_default": self.transfer_walk_default,
+            "paid_zone_mode": self.paid_zone_mode,
             "steps": [s.to_dict() for s in self.steps],
         }
 

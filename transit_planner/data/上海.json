@@ -1181,7 +1181,7 @@
       "color2": "#FFFFFF",
       "operator": "中国铁路上海局",
       "stations": [
-        "上海南站",
+        "上海南",
         "莘庄",
         "春申",
         "新桥",
@@ -1213,8 +1213,8 @@
           "reverse": false
         },
         {
-          "label": "上海南站方向",
-          "terminal": "上海南站",
+          "label": "上海南方向",
+          "terminal": "上海南",
           "reverse": false
         }
       ]
@@ -1323,7 +1323,7 @@
     },
     {
       "id": "sh_tram_t1",
-      "name": "松江有轨电车T1线",
+      "name": "松江有轨电车T1",
       "short_name": "有轨T1",
       "type": "tram",
       "color": "#00B2A9",
@@ -1354,8 +1354,8 @@
         4,
         5
       ],
-      "headway_rush": 10,
-      "headway_normal": 15,
+      "headway_rush": 10.0,
+      "headway_normal": 15.0,
       "first_train": "06:00",
       "last_train": "22:00",
       "ring": false,
@@ -1406,5 +1406,28 @@
       ]
     }
   ],
-  "external_walks": {}
+  "external_walks": {},
+  "transfers": [
+    [
+      "上海南站",
+      "上海南"
+    ],
+    [
+      "上海火车站",
+      "上海"
+    ],
+    [
+      "虹桥火车站",
+      "上海虹桥"
+    ],
+    [
+      "上海西站",
+      "上海西"
+    ],
+    [
+      "松江南站",
+      "松江南"
+    ]
+  ],
+  "aliases": []
 }

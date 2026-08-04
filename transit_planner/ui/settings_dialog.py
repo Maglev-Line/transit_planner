@@ -10,6 +10,7 @@ from pathlib import Path
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QGridLayout, QHBoxLayout, QGroupBox, QLabel,
     QLineEdit, QComboBox, QCheckBox, QPushButton, QFileDialog, QMessageBox,
+    QScrollArea, QTextBrowser, QWidget,
 )
 
 from .. import APP_NAME, __version__
@@ -21,13 +22,19 @@ class SettingsDialog(QDialog):
         super().__init__(parent)
         self.lib = library
         self.setWindowTitle("设置")
-        self.resize(560, 520)
+        self.resize(600, 680)
         self._build_ui()
         self._load(AppSettings.load())
 
     # ---------------- 界面 ----------------
     def _build_ui(self):
         root = QVBoxLayout(self)
+
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        container = QWidget()
+        v = QVBoxLayout(container)
+        v.setContentsMargins(4, 4, 4, 4)
 
         # 常用出行
         gb_fav = QGroupBox("常用出行（下次规划时自动预填）")
@@ -50,7 +57,7 @@ class SettingsDialog(QDialog):
         lbl_tip.setWordWrap(True)
         lbl_tip.setStyleSheet("color:#666;font-size:8.5pt;")
         gf.addWidget(lbl_tip, 3, 0, 1, 3)
-        root.addWidget(gb_fav)
+        v.addWidget(gb_fav)
 
         # 自动保存
         gb_save = QGroupBox("自动保存")
@@ -65,7 +72,7 @@ class SettingsDialog(QDialog):
         btn_browse.clicked.connect(self._browse_dir)
         gs.addWidget(btn_browse, 1, 2)
         self.chk_auto.toggled.connect(lambda on: self.ed_dir.setEnabled(on))
-        root.addWidget(gb_save)
+        v.addWidget(gb_save)
 
         # 在线地图 API
         gb_api = QGroupBox("在线地图 API（可选）")
@@ -90,7 +97,39 @@ class SettingsDialog(QDialog):
             ga.addWidget(ed, i, 2)
             chk.toggled.connect(lambda on, e=ed: e.setEnabled(on))
             self._api_controls[key] = (chk, ed)
-        root.addWidget(gb_api)
+        v.addWidget(gb_api)
+
+        # 地图 API 获取教程
+        gb_tut = QGroupBox("地图 API 获取教程（首次使用请看这里）")
+        gt = QVBoxLayout(gb_tut)
+        browser = QTextBrowser()
+        browser.setOpenExternalLinks(True)
+        browser.setMaximumHeight(240)
+        browser.setStyleSheet("font-size:9pt;")
+        browser.setHtml(
+            "<p><b>① 高德地图（推荐，可查询线路经停站/首末班）：</b></p>"
+            "<ol>"
+            "<li>打开 <a href='https://console.amap.com/dev/key/app'>高德开放平台控制台</a>，注册并登录；</li>"
+            "<li>在「应用管理」中创建一个应用；</li>"
+            "<li>为应用添加 Key，服务平台选择「<b>Web服务</b>」，创建后复制生成的 Key；</li>"
+            "<li>回到本窗口，勾选「高德地图」并粘贴 Key，点击下方「保存」。</li>"
+            "</ol>"
+            "<p><b>② 百度地图（仅用于站点名称补全）：</b></p>"
+            "<ol>"
+            "<li>打开 <a href='https://lbsyun.baidu.com/apiconsole/key'>百度地图开放平台</a>，注册并登录；</li>"
+            "<li>创建「服务端」类型的应用，获取 <b>AK（服务端密钥）</b>；</li>"
+            "<li>勾选「百度地图」并粘贴 AK。百度暂未开放稳定的线路查询接口，无法获取经停站。</li>"
+            "</ol>"
+            "<p><b>③ 腾讯地图（仅用于站点名称补全）：</b></p>"
+            "<ol>"
+            "<li>打开 <a href='https://lbs.qq.com/dev/console'>腾讯位置服务</a>，注册并登录；</li>"
+            "<li>创建应用并获取 <b>Key</b>；</li>"
+            "<li>勾选「腾讯地图」并粘贴 Key。腾讯同样暂未开放稳定的线路查询接口。</li>"
+            "</ol>"
+            "<p>提示：Key 仅保存在本机设置中，不会上传。若不确定，可只用高德一个 Key，"
+            "其余留空即可。</p>")
+        gt.addWidget(browser)
+        v.addWidget(gb_tut)
 
         # 版本信息
         gb_ver = QGroupBox("版本信息")
@@ -101,7 +140,11 @@ class SettingsDialog(QDialog):
         gv.addWidget(QLabel(f"v{__version__}"), 1, 1)
         gv.addWidget(QLabel("用途："), 2, 0)
         gv.addWidget(QLabel("交通迷绕路运转行程规划工具"), 2, 1)
-        root.addWidget(gb_ver)
+        v.addWidget(gb_ver)
+
+        v.addStretch(1)
+        scroll.setWidget(container)
+        root.addWidget(scroll, 1)
 
         # 按钮
         btns = QHBoxLayout()

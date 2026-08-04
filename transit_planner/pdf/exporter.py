@@ -19,7 +19,7 @@ from reportlab.platypus import (
     BaseDocTemplate, Frame, PageTemplate, Paragraph, Spacer, Table, TableStyle,
 )
 
-from ..core.engine import evaluate_trip, TripResult, SegmentResult
+from ..core.engine import evaluate_trip, TripResult, SegmentResult, price_total
 from ..core.models import City, Trip, fmt_minutes
 
 DEFAULT_FONT_REGISTRY = [
@@ -99,7 +99,8 @@ class PDFExporter:
         canvas.restoreState()
 
     # ---------- 分段卡 ----------
-    def _step_flowables(self, seg: SegmentResult, idx: int, st: dict):
+    def _step_flowables(self, seg: SegmentResult, idx: int, st: dict,
+                        paid_mode: bool = False, zones: dict | None = None):
         line = seg.line
         eff_color = seg.step.color or line.color
         eff_color2 = seg.step.color2 or line.color2
@@ -112,6 +113,17 @@ class PDFExporter:
             st["band_name"])
         # 区块内容
         inner = []
+        if paid_mode and zones is not None:
+            z = zones.get(seg.paid_zone_index)
+            if z is not None:
+                is_entry = z.segments and z.segments[0].step is seg.step
+                price_txt = f"　票价 ¥{z.price:.2f}" if z.price is not None else ""
+                marker = "🛂 进闸" if is_entry else "　│"
+                inner.append(Paragraph(
+                    f"{marker} 付费区 {z.index + 1}：{z.entry_station} → {z.exit_station}{price_txt}",
+                    st["band_sub"]))
+        if seg.transfer:
+            inner.append(Paragraph("⚠ 转乘（跨付费区，需出闸/换系统）", st["band_sub"]))
         inner.append(Paragraph(
             f"{seg.step.from_station} <font color='{eff_color}'>→</font> {seg.step.to_station}"
             f"　|　方向：<b>{seg.direction.label}</b>　|　<font color='{eff_color}'><b>{fmt_minutes(seg.run_minutes)}</b></font>"
@@ -215,13 +227,15 @@ class PDFExporter:
         # 换乘提示：上一段到达站 → 本段起点
         from_st = seg.step.from_station
         prev_to = prev.step.to_station
-        if seg.walk_minutes > 0:
+        if seg.transfer:
+            note = "转乘（跨付费区，需出闸/换系统）"
+        elif seg.walk_minutes > 0:
             note = f"换乘步行约 {fmt_minutes(seg.walk_minutes)}"
         elif prev.line.id != seg.line.id:
             note = "站内换乘"
         else:
             note = "同线续乘"
-        if prev.line.id != seg.line.id or prev_to != from_st:
+        if seg.transfer or prev.line.id != seg.line.id or prev_to != from_st:
             return Paragraph(
                 f"<b>↓ 换乘</b>　{prev_to} → <b>{from_st}</b>　({note})　"
                 f"从 {prev.line.name} 换至 {seg.line.name}",
@@ -298,8 +312,8 @@ class PDFExporter:
         flow.append(Spacer(1, 4))
 
         # 汇总表
-        price_total = sum(s.price for s in trip.steps if s.price is not None)
-        price_cell = f"¥{price_total:.2f}" if price_total else "—"
+        price_total_val = price_total(trip, result)
+        price_cell = f"¥{price_total_val:.2f}" if price_total_val else "—"
         summary = Table([
             ["全程总时长", "车上运行", "换乘步行", "换乘次数", "线路数", "总站数", "总票价"],
             [fmt_minutes(result.total_minutes), fmt_minutes(result.total_run),
@@ -319,6 +333,32 @@ class PDFExporter:
         flow.append(summary)
         flow.append(Spacer(1, 6))
 
+        # 付费区汇总（付费区模式下）
+        zones = {z.index: z for z in result.paid_zones}
+        if trip.paid_zone_mode and zones:
+            flow.append(Paragraph("付费区计费（进闸站 → 出闸站，绕路只收一次费）", st["h2"]))
+            zrows = [["付费区", "进闸站", "出闸站", "票价"]]
+            for idx in sorted(zones):
+                z = zones[idx]
+                zrows.append([f"#{z.index + 1}", z.entry_station, z.exit_station,
+                              f"¥{z.price:.2f}" if z.price is not None else "—"])
+            ztbl = Table(zrows, colWidths=[doc.width / 8, doc.width / 3, doc.width / 3, doc.width / 5])
+            zstyle = [
+                ("FONTNAME", (0, 0), (-1, -1), self.font),
+                ("FONTSIZE", (0, 0), (-1, -1), 8.5),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#eef2f7")),
+                ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#cccccc")),
+                ("TOPPADDING", (0, 0), (-1, -1), 3),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+            ]
+            for i in range(1, len(zrows)):
+                if i % 2 == 0:
+                    zstyle.append(("BACKGROUND", (0, i), (-1, i), colors.HexColor("#f4f8fc")))
+            ztbl.setStyle(TableStyle(zstyle))
+            flow.append(ztbl)
+            flow.append(Spacer(1, 8))
+
         if result.segments:
             flow.append(Paragraph("全程时间轴（按实际运行时长成比例）", st["h2"]))
             flow.append(self._timeline(result, st))
@@ -331,7 +371,7 @@ class PDFExporter:
             tf = self._transfer_flowable(seg, prev, st)
             if tf is not None:
                 flow.append(tf)
-            flow.append(self._step_flowables(seg, i, st))
+            flow.append(self._step_flowables(seg, i, st, paid_mode=trip.paid_zone_mode, zones=zones))
             flow.append(Spacer(1, 6))
             prev = seg
 

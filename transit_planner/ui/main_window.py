@@ -15,7 +15,7 @@ from PySide6.QtGui import QColor, QIcon, QPainter, QPixmap
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,
     QSplitter, QComboBox, QLineEdit, QListWidget, QListWidgetItem, QLabel,
-    QPushButton, QMessageBox, QFileDialog, QGroupBox,
+    QPushButton, QMessageBox, QFileDialog, QGroupBox, QCheckBox,
 )
 
 from ..core.models import CityLibrary, Trip, Step, TYPE_LABELS, fmt_minutes
@@ -120,6 +120,11 @@ class MainWindow(QMainWindow):
         self.ed_date.setPlaceholderText("如 2026-08-01")
         self.ed_date.textChanged.connect(self._auto_save)
         toolbar.addWidget(self.ed_date)
+        self.chk_paid = QCheckBox("付费区模式")
+        self.chk_paid.setToolTip("按「进闸站→出闸站」计费：不出闸的连续行程视为一段付费区（即使绕路也只收一次费）；"
+                                 "跨付费区转车（转乘，需出闸/换系统）在段间勾选「转乘」。")
+        self.chk_paid.toggled.connect(self._on_paid_mode_toggled)
+        toolbar.addWidget(self.chk_paid)
         toolbar.addStretch(1)
         btn_new = QPushButton("新建")
         btn_new.clicked.connect(self._new_trip)
@@ -269,6 +274,7 @@ class MainWindow(QMainWindow):
         self.ed_name.setText(self.trip.name)
         self.ed_date.setText(self.trip.date)
         self.cb_city.setCurrentText(self.trip.city)
+        self._sync_paid_mode_ui()
         self._fix_current_pos()
         self._sync_panel()
         self.statusBar().showMessage(f"已载入最近自动保存的方案：{files[0].name}", 4000)
@@ -295,6 +301,15 @@ class MainWindow(QMainWindow):
             self.app_settings = dlg.settings
             self._reload_cities()
             self._preselect_favorite()
+
+    def _on_paid_mode_toggled(self, on: bool):
+        self.trip.paid_zone_mode = bool(on)
+        self._after_steps_changed()
+
+    def _sync_paid_mode_ui(self):
+        self.chk_paid.blockSignals(True)
+        self.chk_paid.setChecked(self.trip.paid_zone_mode)
+        self.chk_paid.blockSignals(False)
 
     def closeEvent(self, event):
         self._auto_save()
@@ -400,13 +415,23 @@ class MainWindow(QMainWindow):
             try:
                 self.result = E.evaluate_trip(self.city, self.trip)
                 r = self.result
-                price_total = sum(s.price for s in self.trip.steps if s.price is not None)
+                price_total = E.price_total(self.trip, r)
                 price_txt = f"<br>总票价：<b>¥{price_total:.2f}</b>" if price_total else ""
+                zone_txt = ""
+                if self.trip.paid_zone_mode:
+                    parts = []
+                    for z in r.paid_zones:
+                        p = f"¥{z.price:.2f}" if z.price is not None else "未填"
+                        parts.append(f"付费区{z.index + 1}：{z.entry_station} → {z.exit_station}（{p}）")
+                    if parts:
+                        zone_txt = "<br>付费区：<span style='color:#0066aa;'>" + "　·　".join(parts) + "</span>"
+                transfer_txt = f" ｜ 转乘 {r.fare_transfer_count} 次" if self.trip.paid_zone_mode else ""
                 self.lbl_stat.setText(
                     f"<b>全程总时长：{r.total_minutes:.0f} 分钟</b><br>"
                     f"车上运行 {r.total_run:.0f} 分钟 ｜ 站外/换乘步行 {r.total_walk:.0f} 分钟<br>"
-                    f"换乘 {r.transfer_count} 次 ｜ {r.line_count} 条线路 ｜ 共 {sum(s.stop_count for s in r.segments)} 站"
-                    f"{price_txt}")
+                    f"换乘 {r.transfer_count} 次{transfer_txt} ｜ {r.line_count} 条线路 ｜ "
+                    f"共 {sum(s.stop_count for s in r.segments)} 站"
+                    f"{zone_txt}{price_txt}")
                 self.timeline.set_segments(
                     [(s.line.short_name, s.step.color or s.line.color, s.run_minutes)
                      for s in r.segments])
@@ -438,10 +463,12 @@ class MainWindow(QMainWindow):
         self.trip.city = self.cb_city.currentText()
         self.trip.note = ""
         self.trip.transfer_walk_default = 5.0
+        self.trip.paid_zone_mode = False
         self.trip.steps.clear()
         self.current_pos = None
         self.ed_name.setText("我的运转方案")
         self.ed_date.clear()
+        self._sync_paid_mode_ui()
         self._after_steps_changed()
 
     def _save_trip(self):
@@ -464,6 +491,7 @@ class MainWindow(QMainWindow):
         self.ed_name.setText(self.trip.name)
         self.ed_date.setText(self.trip.date)
         self.cb_city.setCurrentText(self.trip.city)
+        self._sync_paid_mode_ui()
         self._fix_current_pos()
         self._sync_panel()
 

@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..core import engine as E
-from ..core.models import Line, Step, TYPE_METRO
+from ..core.models import Line, Step, TYPE_METRO, CityLibrary
 from ..core.railway import build_12306_url
 from ..core.settings import AppSettings
 from ..providers.online import BaseMapProvider, OnlineProviderError, build_providers
@@ -264,7 +264,10 @@ class AddStepDialog(QDialog):
         self._api_timer.start(400)
 
     def _api_search(self, text: str):
-        city = self.city.name if self.city is not None else (self.city_label or "")
+        if self.city is not None and CityLibrary.is_combined(self.city.name):
+            city = CityLibrary.COMBINED_CITIES[self.city.name][0]  # 同城组合：用首个真实城市查询
+        else:
+            city = self.city.name if self.city is not None else (self.city_label or "")
         if not city:
             self.lbl_reco.setText("请先在主窗口选择城市，再使用在线地图查询线路。")
             return

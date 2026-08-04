@@ -430,5 +430,12 @@
       ]
     }
   ],
-  "external_walks": {}
+  "external_walks": {},
+  "transfers": [
+    [
+      "苏州火车站",
+      "苏州"
+    ]
+  ],
+  "aliases": []
 }
