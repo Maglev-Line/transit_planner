@@ -108,8 +108,9 @@ class PDFExporter:
         fg = text_color_for_bg(eff_color)
 
         name_para = Paragraph(
-            f"{line.name}  <font color='white'>█</font> "
-            f"<font name='{self.font_bold}'>{line.short_name}</font>",
+            f"{line.name}　<font color='white'>█</font>　"
+            f"<font name='{self.font_bold}'>{line.short_name}</font>"
+            f"　<font color='#555555' size='8'>（{line.type_label}）</font>",
             st["band_name"])
         # 区块内容
         inner = []

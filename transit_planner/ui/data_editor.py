@@ -14,10 +14,13 @@ from PySide6.QtGui import QColor, QIcon, QPainter, QPixmap
 from ..core.models import (
     City, Line, Direction, TYPE_LABELS,
     TYPE_METRO, TYPE_SUBURBAN, TYPE_TRAM, TYPE_BUS, TYPE_RAIL, TYPE_MAGLEV,
+    TYPE_FERRY,
 )
+from ..core.settings import AppSettings
 
 TYPE_CHOICES = [(TYPE_METRO, "地铁"), (TYPE_SUBURBAN, "市域铁路"), (TYPE_TRAM, "有轨电车"),
-                (TYPE_BUS, "公交"), (TYPE_RAIL, "国家铁路"), (TYPE_MAGLEV, "磁浮")]
+                (TYPE_BUS, "公交"), (TYPE_RAIL, "国家铁路"), (TYPE_MAGLEV, "磁浮"),
+                (TYPE_FERRY, "轮渡")]
 
 
 def swatch(color_hex: str, color2: str = "", size: int = 16) -> QIcon:
@@ -105,6 +108,9 @@ class DataEditor(QDialog):
         self.cb_type = QComboBox()
         for key, label in TYPE_CHOICES:
             self.cb_type.addItem(label, key)
+        for ct in AppSettings.load().custom_transit_types:  # 用户自定义类型也可选
+            if self.cb_type.findData(ct) < 0:
+                self.cb_type.addItem(ct, ct)
         form.addWidget(self.cb_type, 1, 1)
         form.addWidget(QLabel("标志色"), 1, 2)
         self.btn_color = QPushButton()
@@ -125,11 +131,15 @@ class DataEditor(QDialog):
 
         form.addWidget(QLabel("高峰间隔(分)"), 2, 0)
         self.sp_rush = QDoubleSpinBox()
-        self.sp_rush.setRange(1, 240)
+        self.sp_rush.setRange(0, 240)
+        self.sp_rush.setSpecialValueText("不定班")
+        self.sp_rush.setToolTip("发车无固定间隔（如部分公交 / 轮渡）时设为 0 = 不定班")
         form.addWidget(self.sp_rush, 2, 1)
         form.addWidget(QLabel("平峰间隔(分)"), 2, 2)
         self.sp_normal = QDoubleSpinBox()
-        self.sp_normal.setRange(1, 240)
+        self.sp_normal.setRange(0, 240)
+        self.sp_normal.setSpecialValueText("不定班")
+        self.sp_normal.setToolTip("发车无固定间隔（如部分公交 / 轮渡）时设为 0 = 不定班")
         form.addWidget(self.sp_normal, 2, 3)
         form.addWidget(QLabel("首班"), 2, 4)
         self.ed_first = QLineEdit()

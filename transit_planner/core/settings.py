@@ -5,7 +5,7 @@
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict, fields
+from dataclasses import dataclass, field, fields, MISSING
 
 ORG = "运转计划助手"
 APP = "settings"
@@ -27,6 +27,8 @@ class AppSettings:
     baidu_key: str = ""
     tencent_enabled: bool = False
     tencent_key: str = ""
+    # 用户自定义交通类型（如 轮渡、缆车…），key 即显示名
+    custom_transit_types: list[str] = field(default_factory=list)
 
     def save(self) -> None:
         from PySide6.QtCore import QSettings
@@ -42,8 +44,20 @@ class AppSettings:
         data = {}
         for f in fields(cls):
             default = f.default
-            if isinstance(default, bool):
+            if f.default_factory is not MISSING:  # default_factory 字段（如 list）
+                raw = s.value(f.name, f.default_factory())
+                if isinstance(raw, str):  # QSettings 空列表有时以空串返回
+                    raw = [x for x in raw.split("\0") if x]
+                raw = list(raw or f.default_factory())
+                data[f.name] = [str(x) for x in raw]
+            elif isinstance(default, bool):
                 data[f.name] = s.value(f.name, default, type=bool)
+            elif isinstance(default, list):
+                raw = s.value(f.name, default)
+                if isinstance(raw, str):
+                    raw = [x for x in raw.split("\0") if x]
+                raw = list(raw or default)
+                data[f.name] = [str(x) for x in raw]
             else:
                 data[f.name] = s.value(f.name, default, type=str)
         return cls(**data)

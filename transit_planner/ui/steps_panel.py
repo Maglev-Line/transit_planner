@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..core import engine as E
-from ..core.models import Trip, fmt_minutes
+from ..core.models import Trip, fmt_minutes, type_display, TYPE_METRO
 
 
 def _swatch_label(color_hex: str, color2: str = "") -> str:
@@ -95,6 +95,15 @@ class StepsPanel(QWidget):
                 pass
         return (s.line_name or s.line_id), "#888888", ""
 
+    def _line_type_label(self, i: int) -> str:
+        s = self.trip.steps[i]
+        if not s.manual and self.city is not None:
+            try:
+                return self.city.line(s.line_id).type_label
+            except Exception:
+                pass
+        return type_display(s.type or TYPE_METRO)
+
     def _make_card(self, i: int) -> QWidget:
         s = self.trip.steps[i]
         name, color, color2 = self._line_meta(i)
@@ -104,7 +113,9 @@ class StepsPanel(QWidget):
         v.setContentsMargins(10, 6, 6, 8)
 
         head = QHBoxLayout()
-        title = QLabel(f"<b>第 {i + 1} 段</b>　{name}")
+        title = QLabel(
+            f"<b>第 {i + 1} 段</b>　{name}"
+            f"　<span style='color:#777777;font-size:9pt;'>（{self._line_type_label(i)}）</span>")
         title.setStyleSheet("font-size:11pt;")
         head.addWidget(title, 1)
         for text, slot in [("上移", self._move_up), ("下移", self._move_down),

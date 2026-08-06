@@ -7,7 +7,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
-from .models import City, Line, Direction, Step, Trip, LineError
+from .models import City, Line, Direction, Step, Trip, LineError, TYPE_METRO
 
 
 # ---------------- 转乘 / 同站异名 / 付费区 ----------------
@@ -258,6 +258,7 @@ def evaluate_manual_step(step: Step, prev_arrival: str | None, default_walk: flo
     line_name = step.line_name or "手动线路"
     line = Line(
         id=f"manual_{line_name}", name=line_name, short_name=line_name,
+        type=step.type or TYPE_METRO,
         color=step.color or "#888888", color2=step.color2 or "",
         stations=[step.from_station, step.to_station],
         headway_rush=1.0, headway_normal=1.0,

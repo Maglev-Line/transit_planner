@@ -13,15 +13,23 @@ from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QGridLayout, QHBoxLayout, QComboBox, QLineEdit,
     QLabel, QPushButton, QDoubleSpinBox, QTableWidget, QTableWidgetItem,
     QColorDialog, QGroupBox, QMessageBox, QCompleter, QCheckBox,
+    QRadioButton, QButtonGroup, QInputDialog,
 )
 
 from ..core import engine as E
-from ..core.models import Line, Step, TYPE_METRO, CityLibrary
+from ..core.models import (
+    Line, Step, TYPE_METRO, TYPE_BUS, TYPE_SUBURBAN, TYPE_TRAM,
+    TYPE_RAIL, TYPE_MAGLEV, TYPE_FERRY, CityLibrary, type_display,
+)
 from ..core.railway import build_12306_url
 from ..core.settings import AppSettings
 from ..providers.online import BaseMapProvider, OnlineProviderError, build_providers
 
 DEFAULT_COLOR = "#888888"
+
+# 内置交通类型（单选按钮顺序）
+DEFAULT_TYPE_KEYS = [TYPE_METRO, TYPE_BUS, TYPE_SUBURBAN, TYPE_TRAM,
+                     TYPE_RAIL, TYPE_MAGLEV, TYPE_FERRY]
 
 
 def _parse_hhmm(text: str) -> int | None:
@@ -61,7 +69,7 @@ class AddStepDialog(QDialog):
         self._api_result_map: dict[str, Line] = {}
         self._api_timer: QTimer | None = None
         self.setWindowTitle("编辑行程" if step is not None else "添加行程")
-        self.resize(620, 720)
+        self.resize(640, 800)
         self._build_ui()
         if step is not None:
             self._load_step(step)
@@ -162,6 +170,9 @@ class AddStepDialog(QDialog):
 
         root.addLayout(form)
 
+        # 交通类型（手动输入线路时选择）
+        root.addWidget(self._build_type_group())
+
         # 时刻表
         tt_group = QGroupBox("发车方式")
         tt_v = QVBoxLayout(tt_group)
@@ -219,6 +230,88 @@ class AddStepDialog(QDialog):
 
         self._apply_color(DEFAULT_COLOR)
         self._apply_color2("")
+
+    # ---------------- 交通类型选择 ----------------
+    def _build_type_group(self) -> QGroupBox:
+        group = QGroupBox("交通类型（手动输入线路时选择）")
+        self.type_grid = QGridLayout(group)
+        self._type_buttons: dict[str, QRadioButton] = {}
+        self._type_order: list[str] = list(DEFAULT_TYPE_KEYS)
+        self._type_group_btns = QButtonGroup(self)
+        self._type_group_btns.setExclusive(True)
+        self._custom_types = list(self.settings.custom_transit_types or [])
+        for ct in self._custom_types:
+            if ct not in self._type_order:
+                self._type_order.append(ct)
+        self.btn_custom_type = QPushButton("自定义…")
+        self.btn_custom_type.setToolTip("自定义新的交通类型（如：轮渡、缆车、观光巴士等），保存后下次仍可用")
+        self.btn_custom_type.clicked.connect(self._add_custom_type)
+        self.chk_irregular = QCheckBox("不定班（无固定发车间隔）")
+        self.chk_irregular.setToolTip("如部分公交 / 轮渡等，勾选后发车班次标注为「不定班」")
+        self.chk_irregular.toggled.connect(self._on_irregular_toggled)
+        self._rebuild_type_grid()
+        return group
+
+    def _rebuild_type_grid(self):
+        while self.type_grid.count():
+            item = self.type_grid.takeAt(0)
+            if item.widget():
+                self.type_grid.removeWidget(item.widget())
+        col = 0
+        for key in self._type_order:
+            rb = self._type_buttons.get(key)
+            if rb is None:
+                rb = QRadioButton(type_display(key))
+                rb.setProperty("type_key", key)
+                self._type_buttons[key] = rb
+                self._type_group_btns.addButton(rb)
+            self.type_grid.addWidget(rb, col // 4, col % 4)
+            col += 1
+        self.type_grid.addWidget(self.btn_custom_type, col // 4, col % 4)
+        self.type_grid.setColumnStretch((col % 4) + 1, 1)
+        self.type_grid.addWidget(self.chk_irregular, col // 4 + 1, 0, 1, 4)
+        if self._type_group_btns.checkedButton() is None:
+            self._set_type(TYPE_METRO)
+
+    def _set_type(self, key: str):
+        rb = self._type_buttons.get(key)
+        if rb is not None:
+            rb.setChecked(True)
+
+    def _selected_type(self) -> str:
+        rb = self._type_group_btns.checkedButton()
+        if rb is not None:
+            return rb.property("type_key") or TYPE_METRO
+        return TYPE_METRO
+
+    def _add_custom_type(self):
+        name, ok = QInputDialog.getText(self, "自定义交通类型", "新的交通类型名称（如：轮渡、缆车）：")
+        name = (name or "").strip()
+        if not ok or not name:
+            return
+        if name in self._type_buttons:
+            QMessageBox.information(self, "提示", f"交通类型「{name}」已存在")
+            self._set_type(name)
+            return
+        self._type_order.append(name)
+        if name not in self._custom_types:
+            self._custom_types.append(name)
+        self.settings.custom_transit_types = list(self._custom_types)
+        try:
+            self.settings.save()
+        except Exception:
+            pass
+        self._rebuild_type_grid()
+        self._set_type(name)
+
+    def _on_irregular_toggled(self, checked: bool):
+        if checked:
+            self.ed_headway.setText("不定班")
+            self.ed_headway.setEnabled(False)
+        else:
+            if self.ed_headway.text().strip() == "不定班":
+                self.ed_headway.clear()
+            self.ed_headway.setEnabled(True)
 
     # ---------------- 线路名推荐 ----------------
     def _line_matches(self, text: str) -> list[Line]:
@@ -309,6 +402,7 @@ class AddStepDialog(QDialog):
         self._matched_line = line
         self._api_matched = True
         self.ed_name.setText(line.name)
+        self._set_type(line.type)
         self._apply_color(line.color)
         self._apply_color2(line.color2)
         self.cb_dir.blockSignals(True)
@@ -320,7 +414,7 @@ class AddStepDialog(QDialog):
         meta = f"已从在线地图获取：{line.name}"
         if line.first_train or line.last_train:
             meta += f"（首班 {line.first_train} / 末班 {line.last_train}）"
-        meta += " · 地铁" if line.type == TYPE_METRO else " · 公交"
+        meta += f" · {line.type_label}"
         self.lbl_reco.setText(meta + "（经停站与时长已自动填写）")
 
     def _stops_and_minutes(self, line: Line, from_st: str, to_st: str):
@@ -349,6 +443,7 @@ class AddStepDialog(QDialog):
         self._matched_line = line
         self._api_matched = False
         self.ed_name.setText(line.name)
+        self._set_type(line.type)
         self._apply_color(line.color)
         self._apply_color2(line.color2)
         # 发车班次
@@ -548,8 +643,15 @@ class AddStepDialog(QDialog):
         if step.run_minutes:
             self.sp_min.setValue(step.run_minutes)
         self.ed_stops.setText(step.stops_text)
+        if step.type:
+            self._set_type(step.type)
         if step.headway_text:
             self.ed_headway.setText(step.headway_text)
+        self.chk_irregular.blockSignals(True)
+        self.chk_irregular.setChecked(step.headway_text == "不定班")
+        self.chk_irregular.blockSignals(False)
+        if step.headway_text == "不定班":
+            self.ed_headway.setEnabled(False)
         self.ed_note.setText(step.note)
         self._apply_color(step.color or (matched.color if matched else DEFAULT_COLOR))
         self._apply_color2(step.color2 or (matched.color2 if matched else ""))
@@ -602,6 +704,7 @@ class AddStepDialog(QDialog):
         step = Step(
             from_station=from_st, to_station=to_st,
             direction_label=direction,
+            type=self._selected_type(),
             line_name=name,
             run_minutes=run,
             stops_text=stops,
@@ -617,6 +720,7 @@ class AddStepDialog(QDialog):
             # 在线地图线路：未入库，退化为手动段，但自动套用经停站/时长/首末班
             step.manual = True
             step.line_name = self._matched_line.name
+            step.type = self._matched_line.type
             step.color = self._manual_color or self._matched_line.color
             step.color2 = self._manual_color2 or self._matched_line.color2
             try:
@@ -639,6 +743,7 @@ class AddStepDialog(QDialog):
                 step.line_id = self._matched_line.id
                 step.direction_label = d.label
                 step.manual = False
+                step.type = self._matched_line.type
                 step.line_name = ""
                 # 勾选了按时刻表乘坐时保留按发时/到时计算的时长，否则由数据库计算
                 step.run_minutes = run if use_tt else None

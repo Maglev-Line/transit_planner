@@ -15,6 +15,7 @@ TYPE_TRAM = "tram"            # 有轨电车
 TYPE_BUS = "bus"              # 公交
 TYPE_RAIL = "national_rail"   # 国家铁路
 TYPE_MAGLEV = "maglev"        # 磁浮
+TYPE_FERRY = "ferry"          # 轮渡
 
 TYPE_LABELS = {
     TYPE_METRO: "地铁",
@@ -23,7 +24,18 @@ TYPE_LABELS = {
     TYPE_BUS: "公交",
     TYPE_RAIL: "国家铁路",
     TYPE_MAGLEV: "磁浮",
+    TYPE_FERRY: "轮渡",
 }
+
+
+def type_display(key: str) -> str:
+    """交通类型的显示文字：内置类型查表；用户自定义类型直接以名称为 key。"""
+    return TYPE_LABELS.get(key, key)
+
+
+def all_type_keys() -> list[str]:
+    """内置交通类型 key 列表（含轮渡）。"""
+    return list(TYPE_LABELS)
 
 
 class LineError(Exception):
@@ -83,8 +95,10 @@ class Line:
 
     @property
     def headway_text(self) -> str:
-        """发车班次文字（不写等车时间）。"""
+        """发车班次文字（不写等车时间）。0 表示「不定班」（无固定间隔）。"""
         r, n = self.headway_rush, self.headway_normal
+        if r <= 0 or n <= 0:
+            return "不定班"
         if r == n:
             return f"{fmt_minutes(r)}一班"
         return f"高峰{fmt_minutes(r)}一班 / 平峰{fmt_minutes(n)}一班"
@@ -249,6 +263,7 @@ class Step:
     to_station: str = ""
     walk_minutes: float | None = None
     manual: bool = False
+    type: str = ""                # 交通类型（地铁/公交/市域铁路/轮渡…；手动段可自定义）
     line_name: str = ""
     run_minutes: float | None = None
     stops_text: str = ""
@@ -270,6 +285,7 @@ class Step:
             "to_station": self.to_station,
             "walk_minutes": self.walk_minutes,
             "manual": self.manual,
+            "type": self.type,
             "line_name": self.line_name,
             "run_minutes": self.run_minutes,
             "stops_text": self.stops_text,
@@ -292,6 +308,7 @@ class Step:
             to_station=data.get("to_station", ""),
             walk_minutes=data.get("walk_minutes"),
             manual=data.get("manual", False),
+            type=data.get("type", ""),
             line_name=data.get("line_name", ""),
             run_minutes=data.get("run_minutes"),
             stops_text=data.get("stops_text", ""),
