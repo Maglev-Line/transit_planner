@@ -10,6 +10,11 @@ env/
 *.pdf
 *.json.tmp
 
+# 打包产物（PyInstaller）
+build/
+dist/
+NDH6SA~M
+
 # IDE
 .vscode/
 .idea/
