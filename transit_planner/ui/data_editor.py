@@ -6,19 +6,21 @@ from PySide6.QtWidgets import (
     QDialog, QWidget, QHBoxLayout, QVBoxLayout, QGridLayout, QSplitter,
     QComboBox, QLineEdit, QListWidget, QListWidgetItem, QLabel, QPushButton,
     QDoubleSpinBox, QColorDialog, QCheckBox, QMessageBox, QInputDialog,
-    QPlainTextEdit,
+    QPlainTextEdit, QScrollArea,
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QIcon, QPainter, QPixmap
 
 from ..core.models import (
     City, Line, Direction, TYPE_LABELS,
-    TYPE_METRO, TYPE_SUBURBAN, TYPE_TRAM, TYPE_BUS, TYPE_RAIL, TYPE_MAGLEV,
-    TYPE_FERRY,
+    TYPE_METRO, TYPE_SUBURBAN, TYPE_TRAM, TYPE_MONORAIL, TYPE_CLOUDRAIL,
+    TYPE_BUS, TYPE_RAIL, TYPE_MAGLEV, TYPE_FERRY,
 )
 from ..core.settings import AppSettings
+from .line_diagram import LineDiagramWidget, find_branch_lines
 
 TYPE_CHOICES = [(TYPE_METRO, "地铁"), (TYPE_SUBURBAN, "市域铁路"), (TYPE_TRAM, "有轨电车"),
+                (TYPE_MONORAIL, "单轨"), (TYPE_CLOUDRAIL, "比亚迪云巴"),
                 (TYPE_BUS, "公交"), (TYPE_RAIL, "国家铁路"), (TYPE_MAGLEV, "磁浮"),
                 (TYPE_FERRY, "轮渡")]
 
@@ -162,39 +164,41 @@ class DataEditor(QDialog):
         dir_row.addWidget(self.ed_directions, 1)
         rv.addLayout(dir_row)
 
-        # 站点编辑
+        # 站点/区间：线路图可视化编辑
         st_box = QVBoxLayout()
-        st_box.addWidget(QLabel("站点（按行车顺序）："))
-        st_row = QHBoxLayout()
-        self.list_stations = QListWidget()
-        st_row.addWidget(self.list_stations, 1)
-        st_btns = QVBoxLayout()
-        for text, slot in [("添加站", self._add_station), ("编辑站名", self._edit_station),
-                           ("上移", self._station_up), ("下移", self._station_down),
-                           ("删除站", self._del_station)]:
-            b = QPushButton(text)
-            b.clicked.connect(slot)
-            st_btns.addWidget(b)
-        st_btns.addStretch(1)
-        st_row.addLayout(st_btns)
-        st_box.addLayout(st_row)
+        st_box.addWidget(QLabel(
+            "线路图：单击选中 · 双击编辑 · 圆圈=车站（站名在圈内） · 线段=区间（下方为运行时长） · 线段上方/两端「+」加站 · 右键删除"))
+        self.scroll_diagram = QScrollArea()
+        self.scroll_diagram.setWidgetResizable(True)
+        self.diagram = LineDiagramWidget()
+        self.diagram.sig_changed.connect(self._on_diagram_changed)
+        self.diagram.sig_split_picked.connect(self._on_split_picked)
+        self.scroll_diagram.setWidget(self.diagram)
+        st_box.addWidget(self.scroll_diagram, 1)
 
-        mt = QHBoxLayout()
-        mt.addWidget(QLabel("选中站→下一站时长(分)："))
-        self.sp_seg = QDoubleSpinBox()
-        self.sp_seg.setRange(0.5, 120)
-        self.sp_seg.valueChanged.connect(self._on_seg_changed)
-        mt.addWidget(self.sp_seg)
-        mt.addWidget(QLabel("默认站间时长(分)："))
+        tool = QHBoxLayout()
+        b = QPushButton("添加支线")
+        b.setToolTip("先点击主线上的车站作为主支分离点，再选择延伸方向与支线站数")
+        b.clicked.connect(self._add_branch)
+        tool.addWidget(b)
+        self.btn_cancel_branch = QPushButton("取消")
+        self.btn_cancel_branch.setVisible(False)
+        self.btn_cancel_branch.clicked.connect(self._cancel_branch_pick)
+        tool.addWidget(self.btn_cancel_branch)
+        self.lbl_branch_status = QLabel("")
+        tool.addWidget(self.lbl_branch_status)
+        tool.addStretch(1)
+        tool.addWidget(QLabel("新站默认时长(分)："))
         self.sp_default_seg = QDoubleSpinBox()
         self.sp_default_seg.setRange(0.5, 120)
         self.sp_default_seg.setValue(3.0)
-        mt.addWidget(self.sp_default_seg)
+        self.sp_default_seg.valueChanged.connect(self._on_default_seg_changed)
+        tool.addWidget(self.sp_default_seg)
         b = QPushButton("套用默认到全线")
         b.clicked.connect(self._apply_default_seg)
-        mt.addWidget(b)
-        st_box.addLayout(mt)
-        rv.addLayout(st_box)
+        tool.addWidget(b)
+        st_box.addLayout(tool)
+        rv.addLayout(st_box, 1)
 
         split.addWidget(right)
         split.setSizes([260, 800])
@@ -252,15 +256,40 @@ class DataEditor(QDialog):
             self._reload_cities()
 
     # ---------------- 线路 ----------------
-    def _reload_lines(self):
+    def _reload_lines(self, select_id: str | None = None):
+        """重建线路列表；select_id 指定要选中的线路（缺省=保持原选择）。"""
+        prev = select_id
+        if prev is None:
+            item = self.list_lines.currentItem()
+            prev = item.data(Qt.UserRole) if item else None
+        # 选中线路的支线 ID（列表加 └ 前缀标记）
+        branch_ids: set[str] = set()
+        if self.current_city is not None and prev:
+            main = next((ln for ln in self.current_city.lines if ln.id == prev), None)
+            if main is not None:
+                branch_ids = {ln.id for ln in find_branch_lines(self.current_city, main)}
         self.list_lines.blockSignals(True)
         self.list_lines.clear()
         for ln in self.current_city.lines:
-            item = QListWidgetItem(swatch(ln.color, ln.color2), ln.name)
+            text = ("　└ " + ln.name) if ln.id in branch_ids else ln.name
+            item = QListWidgetItem(swatch(ln.color, ln.color2), text)
             item.setData(Qt.UserRole, ln.id)
             self.list_lines.addItem(item)
+        row = -1
+        for i in range(self.list_lines.count()):
+            if self.list_lines.item(i).data(Qt.UserRole) == prev:
+                row = i
+                break
+        if row >= 0:
+            self.list_lines.setCurrentRow(row)
+        elif self.list_lines.count() > 0:
+            self.list_lines.setCurrentRow(0)
         self.list_lines.blockSignals(False)
-        self._load_line_to_form(None)
+        item = self.list_lines.currentItem()
+        if item is None:
+            self._load_line_to_form(None)
+        else:
+            self._load_line_to_form(self.current_city.line(item.data(Qt.UserRole)))
 
     def _selected_line(self):
         item = self.list_lines.currentItem()
@@ -272,7 +301,8 @@ class DataEditor(QDialog):
         if cur is None:
             self._load_line_to_form(None)
             return
-        self._load_line_to_form(self.current_city.line(cur.data(Qt.UserRole)))
+        # 重建列表以刷新支线 └ 标记（内部 blockSignals，不会重入）
+        self._reload_lines(select_id=cur.data(Qt.UserRole))
 
     def _new_line(self):
         if not self.current_city:
@@ -286,11 +316,7 @@ class DataEditor(QDialog):
             return
         line = Line(id=lid, name=lid)
         self.current_city.lines.append(line)
-        self._reload_lines()
-        for i in range(self.list_lines.count()):
-            if self.list_lines.item(i).data(Qt.UserRole) == lid:
-                self.list_lines.setCurrentRow(i)
-                break
+        self._reload_lines(select_id=lid)
 
     def _del_line(self):
         line = self._selected_line()
@@ -317,8 +343,7 @@ class DataEditor(QDialog):
             self.sp_normal.setValue(10)
             self.chk_ring.setChecked(False)
             self.ed_directions.clear()
-            self.list_stations.clear()
-            self.sp_seg.setEnabled(False)
+            self.diagram.set_line(self.current_city, None)
             return
         self.ed_id.setText(line.id)
         self.ed_name.setText(line.name)
@@ -335,13 +360,14 @@ class DataEditor(QDialog):
         self.sp_normal.setValue(line.headway_normal)
         self.chk_ring.setChecked(line.ring)
         self.ed_directions.setPlainText("\n".join(d.label for d in line.directions))
-        self._reload_stations()
-        self.sp_seg.setEnabled(True)
+        self._reload_diagram()
 
     def _apply_color(self, hex_color: str):
         self._line_color = hex_color
         self.btn_color.setText(hex_color)
         self.btn_color.setStyleSheet(f"background:{hex_color};")
+        if hasattr(self, "diagram"):
+            self.diagram.update()
 
     def _apply_color2(self, hex_color: str):
         self._line_color2 = hex_color or ""
@@ -351,6 +377,8 @@ class DataEditor(QDialog):
         else:
             self.btn_color2.setText("（无）")
             self.btn_color2.setStyleSheet("")
+        if hasattr(self, "diagram"):
+            self.diagram.update()
 
     def _pick_color(self):
         color = QColorDialog.getColor(QColor(self._line_color))
@@ -406,95 +434,81 @@ class DataEditor(QDialog):
             else:
                 ln.directions = []
 
-    # ---------------- 站点 ----------------
-    def _reload_stations(self):
-        self.list_stations.blockSignals(True)
-        self.list_stations.clear()
-        if self.current_line:
-            for i, s in enumerate(self.current_line.stations):
-                item = QListWidgetItem(f"{i + 1}. {s}")
-                self.list_stations.addItem(item)
-        self.list_stations.blockSignals(False)
+    # ---------------- 线路图（车站/区间/支线） ----------------
+    def _reload_diagram(self):
+        self.diagram.default_minutes = self.sp_default_seg.value()
+        self.diagram.set_line(self.current_city, self.current_line)
 
-    def _add_station(self):
-        if not self.current_line:
-            return
-        name, ok = QInputDialog.getText(self, "添加站点", "站点名称：")
-        if not ok or not name.strip():
-            return
-        r = self.list_stations.currentRow()
-        idx = r + 1 if r >= 0 else len(self.current_line.stations)
-        self.current_line.stations.insert(idx, name.strip())
-        self.current_line.travel_minutes.insert(idx, self.sp_default_seg.value())
-        self._reload_stations()
-        self.list_stations.setCurrentRow(idx)
-        self._sync_seg_spin(idx)
+    def _on_default_seg_changed(self, value):
+        self.diagram.default_minutes = value
 
-    def _edit_station(self):
-        r = self.list_stations.currentRow()
-        if r < 0 or not self.current_line:
-            return
-        name, ok = QInputDialog.getText(self, "编辑站点", "站点名称：",
-                                        text=self.current_line.stations[r])
-        if ok and name.strip():
-            self.current_line.stations[r] = name.strip()
-            self._reload_stations()
-            self.list_stations.setCurrentRow(r)
-
-    def _del_station(self):
-        r = self.list_stations.currentRow()
-        if r < 0 or not self.current_line:
-            return
-        if len(self.current_line.stations) <= 2:
-            QMessageBox.information(self, "提示", "至少保留 2 个站点")
-            return
-        del self.current_line.stations[r]
-        if r < len(self.current_line.travel_minutes):
-            del self.current_line.travel_minutes[r]
-        self._reload_stations()
-
-    def _station_up(self):
-        self._swap_station(-1)
-
-    def _station_down(self):
-        self._swap_station(1)
-
-    def _swap_station(self, d):
-        r = self.list_stations.currentRow()
-        if r < 0 or not self.current_line:
-            return
-        n = len(self.current_line.stations)
-        j = r + d
-        if not (0 <= j < n):
-            return
-        st = self.current_line.stations
-        tm = self.current_line.travel_minutes
-        st[r], st[j] = st[j], st[r]
-        # 交换相邻站间时长（保持对应关系）
-        lo, hi = min(r, j), max(r, j)
-        if lo < len(tm) and hi - 1 < len(tm):
-            tm[lo], tm[hi - 1] = tm[hi - 1], tm[lo]
-        self._reload_stations()
-        self.list_stations.setCurrentRow(j)
-
-    def _sync_seg_spin(self, r):
-        ln = self.current_line
-        if ln and 0 <= r < len(ln.travel_minutes):
-            self.sp_seg.blockSignals(True)
-            self.sp_seg.setValue(ln.travel_minutes[r])
-            self.sp_seg.blockSignals(False)
-
-    def _on_seg_changed(self, value):
-        r = self.list_stations.currentRow()
-        ln = self.current_line
-        if ln and 0 <= r < len(ln.travel_minutes):
-            ln.travel_minutes[r] = value
+    def _on_diagram_changed(self):
+        """线路图数据变化：刷新左侧列表（站名/支线增删）并保持当前线路选中。"""
+        if self.current_line is not None:
+            self._reload_lines(select_id=self.current_line.id)
+        else:
+            self._reload_lines()
 
     def _apply_default_seg(self):
-        if self.current_line and len(self.current_line.travel_minutes) >= len(self.current_line.stations) - 1:
-            self.current_line.travel_minutes = [self.sp_default_seg.value()] * (len(self.current_line.stations) - 1)
-            self._reload_stations()
-            self._sync_seg_spin(self.list_stations.currentRow())
+        if self.current_line and len(self.current_line.stations) >= 2:
+            need = len(self.current_line.stations) - 1
+            if self.current_line.ring:
+                need += 1  # 环线含首尾闭合段
+            self.current_line.travel_minutes = [self.sp_default_seg.value()] * need
+            self.diagram.update()
+            self._reload_lines(select_id=self.current_line.id)
+
+    # ---------------- 支线 ----------------
+    def _add_branch(self):
+        if not self.current_line:
+            QMessageBox.information(self, "提示", "请先选择一条主线")
+            return
+        self.diagram.start_branch_pick()
+        self.btn_cancel_branch.setVisible(True)
+        self.lbl_branch_status.setText("请点击主线上的车站作为主支分离点…")
+
+    def _on_split_picked(self, station: str):
+        self._cancel_branch_pick()
+        main = self.current_line
+        if main is None:
+            return
+        side, ok = QInputDialog.getItem(self, "添加支线",
+                                        f"主支分离点：{station}\n支线延伸方向：",
+                                        ["向右延伸", "向左延伸"], 0, False)
+        if not ok:
+            return
+        count, ok = QInputDialog.getInt(self, "添加支线", "支线站数（不含分离点）：",
+                                        3, 1, 30)
+        if not ok:
+            return
+        self._create_branch(station, side == "向右延伸", count)
+
+    def _create_branch(self, split: str, right: bool, count: int):
+        """以 split 为分离点新建一条支线：ID=主线ID+b，仅保存分离点与支线区间。"""
+        main = self.current_line
+        city = self.current_city
+        base = main.id + "b"
+        bid, num, k = base, "", 2
+        while any(l.id == bid for l in city.lines):
+            bid, num, k = f"{base}{k}", str(k), k + 1
+        name = main.name + ("支线" if not num else f"支线{num}")
+        short = main.short_name + ("支线" if not num else f"支线{num}")
+        ext = [f"支线站{i + 1}" for i in range(count)]
+        stations = ([split] + ext) if right else (ext + [split])
+        branch = Line(id=bid, name=name, short_name=short,
+                      type=main.type, color=main.color, color2=main.color2,
+                      operator=main.operator, stations=stations,
+                      travel_minutes=[self.sp_default_seg.value()] * count,
+                      headway_rush=main.headway_rush, headway_normal=main.headway_normal,
+                      first_train=main.first_train, last_train=main.last_train,
+                      ring=False)
+        city.lines.append(branch)
+        self._reload_lines(select_id=main.id)
+
+    def _cancel_branch_pick(self):
+        self.diagram.cancel_branch_pick()
+        self.btn_cancel_branch.setVisible(False)
+        self.lbl_branch_status.setText("")
 
     # ---------------- 保存 ----------------
     def _save_all(self):

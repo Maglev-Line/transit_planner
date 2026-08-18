@@ -12,6 +12,8 @@ from pathlib import Path
 TYPE_METRO = "metro"          # 地铁
 TYPE_SUBURBAN = "suburban"    # 市域铁路
 TYPE_TRAM = "tram"            # 有轨电车
+TYPE_MONORAIL = "monorail"    # 单轨
+TYPE_CLOUDRAIL = "cloudrail"  # 比亚迪云巴
 TYPE_BUS = "bus"              # 公交
 TYPE_RAIL = "national_rail"   # 国家铁路
 TYPE_MAGLEV = "maglev"        # 磁浮
@@ -21,6 +23,8 @@ TYPE_LABELS = {
     TYPE_METRO: "地铁",
     TYPE_SUBURBAN: "市域铁路",
     TYPE_TRAM: "有轨电车",
+    TYPE_MONORAIL: "单轨",
+    TYPE_CLOUDRAIL: "比亚迪云巴",
     TYPE_BUS: "公交",
     TYPE_RAIL: "国家铁路",
     TYPE_MAGLEV: "磁浮",

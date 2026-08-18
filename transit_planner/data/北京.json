@@ -5,12 +5,12 @@
   "lines": [
     {
       "id": "bj_m1",
-      "name": "北京地铁1号线",
+      "name": "北京地铁1号线八通线",
       "short_name": "1号线",
       "type": "metro",
-      "color": "#B0313F",
+      "color": "#A73C34",
       "color2": "",
-      "operator": "",
+      "operator": "北京市地铁运营有限公司",
       "stations": [
         "苹果园",
         "古城",
@@ -34,10 +34,33 @@
         "国贸",
         "大望路",
         "四惠",
-        "四惠东"
+        "四惠东",
+        "高碑店",
+        "传媒大学",
+        "双桥",
+        "管庄",
+        "八里桥",
+        "通州北苑",
+        "果园",
+        "九棵树",
+        "梨园",
+        "临河里",
+        "土桥",
+        "花庄",
+        "环球度假区"
       ],
       "travel_minutes": [
-        4,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        1,
         3.0,
         3.0,
         3.0,
@@ -56,7 +79,10 @@
         3.0,
         3.0,
         3.0,
-        3,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
         3.0,
         3.0
       ],
@@ -67,8 +93,8 @@
       "ring": false,
       "directions": [
         {
-          "label": "四惠东方向",
-          "terminal": "四惠东",
+          "label": "环球度假区方向",
+          "terminal": "环球度假区",
           "reverse": false
         },
         {
@@ -83,9 +109,9 @@
       "name": "北京地铁2号线",
       "short_name": "2号线",
       "type": "metro",
-      "color": "#0054A6",
+      "color": "#356094",
       "color2": "",
-      "operator": "",
+      "operator": "北京市地铁运营有限公司",
       "stations": [
         "西直门",
         "车公庄",
@@ -147,13 +173,62 @@
       ]
     },
     {
-      "id": "bj_m4",
-      "name": "北京地铁4号线",
-      "short_name": "4号线·大兴线",
+      "id": "bj_m3",
+      "name": "北京地铁3号线",
+      "short_name": "3号线",
       "type": "metro",
-      "color": "#008E9C",
+      "color": "#A81C32",
       "color2": "",
-      "operator": "",
+      "operator": "北京市地铁运营有限公司",
+      "stations": [
+        "东四十条",
+        "工人体育场",
+        "团结湖",
+        "朝阳公园",
+        "石佛营",
+        "朝阳站",
+        "姚家园",
+        "东坝南",
+        "东坝",
+        "东坝北"
+      ],
+      "travel_minutes": [
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+      ],
+      "headway_rush": 3,
+      "headway_normal": 6,
+      "first_train": "05:00",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "东坝北方向",
+          "terminal": "东坝北",
+          "reverse": false
+        },
+        {
+          "label": "东四十条方向",
+          "terminal": "东四十条",
+          "reverse": false
+        }
+      ]
+    },
+    {
+      "id": "bj_m4",
+      "name": "北京地铁4号线大兴线",
+      "short_name": "4号线",
+      "type": "metro",
+      "color": "#328D9A",
+      "color2": "",
+      "operator": "北京京港地铁有限公司",
       "stations": [
         "安河桥北",
         "北宫门",
@@ -250,9 +325,9 @@
       "name": "北京地铁5号线",
       "short_name": "5号线",
       "type": "metro",
-      "color": "#A43F98",
+      "color": "#8E267C",
       "color2": "",
-      "operator": "",
+      "operator": "北京市地铁运营有限公司",
       "stations": [
         "天通苑北",
         "天通苑",
@@ -325,11 +400,12 @@
       "name": "北京地铁6号线",
       "short_name": "6号线",
       "type": "metro",
-      "color": "#B8912F",
+      "color": "#C29622",
       "color2": "",
-      "operator": "",
+      "operator": "北京市地铁运营有限公司",
       "stations": [
         "金安桥",
+        "苹果园",
         "杨庄",
         "西黄村",
         "廖公庄",
@@ -338,6 +414,7 @@
         "慈寿寺",
         "花园桥",
         "白石桥南",
+        "二里沟",
         "车公庄西",
         "车公庄",
         "平安里",
@@ -356,13 +433,15 @@
         "草房",
         "物资学院路",
         "通州北关",
-        "北运河东",
+        "通运门",
         "北运河西",
+        "北运河东",
+        "郝家府",
         "东夏园",
-        "潞城"
+        "潞城",
+        "潞阳"
       ],
       "travel_minutes": [
-        5,
         3.0,
         3.0,
         3.0,
@@ -388,9 +467,15 @@
         3.0,
         3.0,
         3.0,
-        4,
         3.0,
-        5,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
         3.0
       ],
       "headway_rush": 3,
@@ -400,8 +485,8 @@
       "ring": false,
       "directions": [
         {
-          "label": "潞城方向",
-          "terminal": "潞城",
+          "label": "潞阳方向",
+          "terminal": "潞阳",
           "reverse": false
         },
         {
@@ -412,13 +497,102 @@
       ]
     },
     {
+      "id": "bj_m7",
+      "name": "北京地铁7号线",
+      "short_name": "7号线",
+      "type": "metro",
+      "color": "#ECC475",
+      "color2": "",
+      "operator": "北京市地铁运营有限公司",
+      "stations": [
+        "北京西站",
+        "湾子",
+        "达官营",
+        "广安门内",
+        "菜市口",
+        "虎坊桥",
+        "珠市口",
+        "桥湾",
+        "磁器口",
+        "广渠门内",
+        "广渠门外",
+        "双井",
+        "九龙山",
+        "大郊亭",
+        "百子湾",
+        "化工",
+        "南楼梓庄",
+        "欢乐谷景区",
+        "垡头",
+        "双合",
+        "焦化厂",
+        "黄厂",
+        "郎辛庄",
+        "黑庄户",
+        "万盛西",
+        "万盛东",
+        "群芳",
+        "高楼金",
+        "花庄",
+        "环球度假区"
+      ],
+      "travel_minutes": [
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+      ],
+      "headway_rush": 3,
+      "headway_normal": 6,
+      "first_train": "05:00",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "环球度假区方向",
+          "terminal": "环球度假区",
+          "reverse": false
+        },
+        {
+          "label": "北京西站方向",
+          "terminal": "北京西站",
+          "reverse": false
+        }
+      ]
+    },
+    {
       "id": "bj_m8",
       "name": "北京地铁8号线",
       "short_name": "8号线",
       "type": "metro",
-      "color": "#009B6A",
+      "color": "#009A6D",
       "color2": "",
-      "operator": "",
+      "operator": "北京市地铁运营有限公司",
       "stations": [
         "朱辛庄",
         "育知路",
@@ -446,6 +620,7 @@
         "天桥",
         "永定门外",
         "木樨园",
+        "海户屯",
         "大红门",
         "大红门南",
         "和义",
@@ -457,6 +632,7 @@
       ],
       "travel_minutes": [
         4,
+        3.0,
         3.0,
         3.0,
         3.0,
@@ -509,13 +685,68 @@
       ]
     },
     {
+      "id": "bj_m9",
+      "name": "北京地铁9号线",
+      "short_name": "9号线",
+      "type": "metro",
+      "color": "#9FC238",
+      "color2": "",
+      "operator": "北京市地铁运营有限公司",
+      "stations": [
+        "国家图书馆",
+        "白石桥南",
+        "白堆子",
+        "军事博物馆",
+        "北京西站",
+        "六里桥东",
+        "六里桥",
+        "七里庄",
+        "丰台东大街",
+        "丰台南路",
+        "科怡路",
+        "丰台科技园",
+        "郭公庄"
+      ],
+      "travel_minutes": [
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+      ],
+      "headway_rush": 3,
+      "headway_normal": 6,
+      "first_train": "05:00",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "郭公庄方向",
+          "terminal": "郭公庄",
+          "reverse": false
+        },
+        {
+          "label": "国家图书馆方向",
+          "terminal": "国家图书馆",
+          "reverse": false
+        }
+      ]
+    },
+    {
       "id": "bj_m10",
       "name": "北京地铁10号线",
       "short_name": "10号线",
       "type": "metro",
-      "color": "#009BD0",
+      "color": "#3C99BD",
       "color2": "",
-      "operator": "",
+      "operator": "北京市地铁运营有限公司",
       "stations": [
         "巴沟",
         "苏州街",
@@ -631,60 +862,957 @@
       ]
     },
     {
-      "id": "bj_sub_fzx",
-      "name": "市郊铁路城市副中心线",
-      "short_name": "副中心线",
-      "type": "suburban",
-      "color": "#7A3E9D",
+      "id": "bj_m11",
+      "name": "北京地铁11号线",
+      "short_name": "11号线",
+      "type": "metro",
+      "color": "#EA806F",
       "color2": "",
-      "operator": "北京市郊铁路",
+      "operator": "北京市地铁运营有限公司",
       "stations": [
-        "良乡",
-        "良乡大学城",
-        "长阳",
-        "广阳城",
-        "北京西",
-        "北京",
-        "北京东",
-        "通州",
-        "乔庄东"
+        "模式口",
+        "金安桥",
+        "北辛安",
+        "新首钢"
       ],
       "travel_minutes": [
-        8,
-        5.0,
-        5.0,
-        5.0,
-        5.0,
-        6,
-        9,
-        5
+        3.0,
+        3.0,
+        3.0
       ],
-      "headway_rush": 20,
-      "headway_normal": 30,
+      "headway_rush": 3,
+      "headway_normal": 6,
+      "first_train": "05:00",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "新首钢方向",
+          "terminal": "新首钢",
+          "reverse": false
+        },
+        {
+          "label": "模式口方向",
+          "terminal": "模式口",
+          "reverse": false
+        }
+      ]
+    },
+    {
+      "id": "bj_m12",
+      "name": "北京地铁12号线",
+      "short_name": "12号线",
+      "type": "metro",
+      "color": "#B16B09",
+      "color2": "",
+      "operator": "北京市地铁运营有限公司",
+      "stations": [
+        "四季青桥",
+        "蓝靛厂",
+        "长春桥",
+        "苏州桥",
+        "人民大学",
+        "大钟寺",
+        "蓟门桥",
+        "北太平庄",
+        "马甸桥",
+        "安华桥",
+        "安贞桥",
+        "和平西桥",
+        "光熙门",
+        "西坝河",
+        "三元桥",
+        "将台西",
+        "高家园",
+        "驼房营",
+        "东坝西",
+        "东坝北"
+      ],
+      "travel_minutes": [
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+      ],
+      "headway_rush": 3,
+      "headway_normal": 6,
+      "first_train": "05:00",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "东坝北方向",
+          "terminal": "东坝北",
+          "reverse": false
+        },
+        {
+          "label": "四季青桥方向",
+          "terminal": "四季青桥",
+          "reverse": false
+        }
+      ]
+    },
+    {
+      "id": "bj_m13",
+      "name": "北京地铁13号线",
+      "short_name": "13号线",
+      "type": "metro",
+      "color": "#F4E636",
+      "color2": "",
+      "operator": "北京市地铁运营有限公司",
+      "stations": [
+        "西直门",
+        "大钟寺",
+        "知春路",
+        "五道口",
+        "上地",
+        "清河站",
+        "西二旗",
+        "龙泽",
+        "回龙观",
+        "霍营",
+        "立水桥",
+        "北苑",
+        "望京西",
+        "芍药居",
+        "光熙门",
+        "柳芳",
+        "东直门"
+      ],
+      "travel_minutes": [
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+      ],
+      "headway_rush": 3,
+      "headway_normal": 6,
+      "first_train": "05:00",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "东直门方向",
+          "terminal": "东直门",
+          "reverse": false
+        },
+        {
+          "label": "西直门方向",
+          "terminal": "西直门",
+          "reverse": false
+        }
+      ]
+    },
+    {
+      "id": "bj_m14",
+      "name": "北京地铁14号线",
+      "short_name": "14号线",
+      "type": "metro",
+      "color": "#C8A5A0",
+      "color2": "",
+      "operator": "北京京港地铁有限公司",
+      "stations": [
+        "善各庄",
+        "来广营",
+        "东湖渠",
+        "望京",
+        "阜通",
+        "望京南",
+        "将台",
+        "东风北桥",
+        "枣营",
+        "朝阳公园",
+        "金台路",
+        "大望路",
+        "九龙山",
+        "平乐园",
+        "北工大西门",
+        "十里河",
+        "方庄",
+        "蒲黄榆",
+        "景泰",
+        "永定门外",
+        "北京南站",
+        "景风门",
+        "西铁营",
+        "菜户营",
+        "丽泽商务区",
+        "东管头",
+        "西局",
+        "七里庄",
+        "大井",
+        "郭庄子",
+        "大瓦窑",
+        "园博园",
+        "张郭庄"
+      ],
+      "travel_minutes": [
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+      ],
+      "headway_rush": 3,
+      "headway_normal": 6,
+      "first_train": "05:00",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "张郭庄方向",
+          "terminal": "张郭庄",
+          "reverse": false
+        },
+        {
+          "label": "善各庄方向",
+          "terminal": "善各庄",
+          "reverse": false
+        }
+      ]
+    },
+    {
+      "id": "bj_m15",
+      "name": "北京地铁15号线",
+      "short_name": "15号线",
+      "type": "metro",
+      "color": "#5F387B",
+      "color2": "",
+      "operator": "北京市地铁运营有限公司",
+      "stations": [
+        "清华东路西口",
+        "六道口",
+        "北沙滩",
+        "奥林匹克公园",
+        "安立路",
+        "大屯路东",
+        "关庄",
+        "望京西",
+        "望京",
+        "望京东",
+        "崔各庄",
+        "马泉营",
+        "孙河",
+        "国展",
+        "花梨坎",
+        "后沙峪",
+        "南法信",
+        "石门",
+        "顺义",
+        "俸伯"
+      ],
+      "travel_minutes": [
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+      ],
+      "headway_rush": 3,
+      "headway_normal": 6,
+      "first_train": "05:00",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "俸伯方向",
+          "terminal": "俸伯",
+          "reverse": false
+        },
+        {
+          "label": "清华东路西口方向",
+          "terminal": "清华东路西口",
+          "reverse": false
+        }
+      ]
+    },
+    {
+      "id": "bj_m16",
+      "name": "北京地铁16号线",
+      "short_name": "16号线",
+      "type": "metro",
+      "color": "#83A13B",
+      "color2": "",
+      "operator": "北京京港地铁有限公司",
+      "stations": [
+        "北安河",
+        "温阳路",
+        "稻香湖路",
+        "屯佃",
+        "永丰",
+        "永丰南",
+        "西北旺",
+        "马连洼",
+        "农大南路",
+        "西苑",
+        "万泉河桥",
+        "苏州街",
+        "苏州桥",
+        "万寿寺",
+        "国家图书馆",
+        "二里沟",
+        "甘家口",
+        "玉渊潭东门",
+        "木樨地",
+        "达官营",
+        "红莲南路",
+        "丽泽商务区",
+        "东管头南",
+        "丰台站",
+        "丰台南路",
+        "富丰桥",
+        "看丹",
+        "榆树庄",
+        "洪泰庄",
+        "宛平城"
+      ],
+      "travel_minutes": [
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+      ],
+      "headway_rush": 3,
+      "headway_normal": 6,
+      "first_train": "05:00",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "宛平城方向",
+          "terminal": "宛平城",
+          "reverse": false
+        },
+        {
+          "label": "北安河方向",
+          "terminal": "北安河",
+          "reverse": false
+        }
+      ]
+    },
+    {
+      "id": "bj_m17",
+      "name": "北京地铁17号线",
+      "short_name": "17号线",
+      "type": "metro",
+      "color": "#3FA7A7",
+      "color2": "",
+      "operator": "北京京港地铁有限公司",
+      "stations": [
+        "未来科学城北",
+        "未来科学城",
+        "天通苑东",
+        "清河营",
+        "红军营",
+        "望京西",
+        "太阳宫",
+        "西坝河",
+        "左家庄",
+        "工人体育场",
+        "东大桥",
+        "永安里",
+        "潘家园西",
+        "十里河",
+        "周家庄",
+        "十八里店",
+        "北神树",
+        "次渠北",
+        "次渠",
+        "嘉会湖"
+      ],
+      "travel_minutes": [
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+      ],
+      "headway_rush": 3,
+      "headway_normal": 6,
+      "first_train": "05:00",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "嘉会湖方向",
+          "terminal": "嘉会湖",
+          "reverse": false
+        },
+        {
+          "label": "未来科学城北方向",
+          "terminal": "未来科学城北",
+          "reverse": false
+        }
+      ]
+    },
+    {
+      "id": "bj_m18",
+      "name": "北京地铁18号线",
+      "short_name": "18号线",
+      "type": "metro",
+      "color": "#5F59A3",
+      "color2": "",
+      "operator": "北京市地铁运营有限公司",
+      "stations": [
+        "马连洼",
+        "上地软件园",
+        "东北旺",
+        "龙泽西",
+        "回龙观西大街",
+        "文华路",
+        "回龙观东大街",
+        "霍营东",
+        "天通苑",
+        "太平庄",
+        "天通苑东"
+      ],
+      "travel_minutes": [
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+      ],
+      "headway_rush": 3,
+      "headway_normal": 6,
+      "first_train": "05:00",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "天通苑东方向",
+          "terminal": "天通苑东",
+          "reverse": false
+        },
+        {
+          "label": "马连洼方向",
+          "terminal": "马连洼",
+          "reverse": false
+        }
+      ]
+    },
+    {
+      "id": "bj_m19",
+      "name": "北京地铁19号线",
+      "short_name": "19号线",
+      "type": "metro",
+      "color": "#C19DC3",
+      "color2": "",
+      "operator": "北京市轨道交通运营管理有限公司",
+      "stations": [
+        "牡丹园",
+        "北太平庄",
+        "积水潭",
+        "平安里",
+        "太平桥",
+        "牛街",
+        "景风门",
+        "草桥",
+        "新发地",
+        "新宫"
+      ],
+      "travel_minutes": [
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+      ],
+      "headway_rush": 3,
+      "headway_normal": 6,
+      "first_train": "05:00",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "新宫方向",
+          "terminal": "新宫",
+          "reverse": false
+        },
+        {
+          "label": "牡丹园方向",
+          "terminal": "牡丹园",
+          "reverse": false
+        }
+      ]
+    },
+    {
+      "id": "bj_msdjc",
+      "name": "北京地铁首都机场线",
+      "short_name": "首都机场线",
+      "type": "metro",
+      "color": "#9F9AB9",
+      "color2": "",
+      "operator": "北京京城地铁有限公司",
+      "stations": [
+        "北新桥",
+        "东直门",
+        "三元桥",
+        "3号航站楼",
+        "2号航站楼"
+      ],
+      "travel_minutes": [
+        3.0,
+        5.0,
+        18,
+        14
+      ],
+      "headway_rush": 8,
+      "headway_normal": 12,
+      "first_train": "06:00",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "2号航站楼方向",
+          "terminal": "2号航站楼",
+          "reverse": false
+        },
+        {
+          "label": "北新桥方向",
+          "terminal": "北新桥",
+          "reverse": false
+        }
+      ]
+    },
+    {
+      "id": "bj_mdxjc",
+      "name": "北京地铁大兴机场线",
+      "short_name": "大兴机场线",
+      "type": "metro",
+      "color": "#1C109C",
+      "color2": "",
+      "operator": "北京市轨道交通运营管理有限公司",
+      "stations": [
+        "草桥",
+        "大兴新城",
+        "大兴机场"
+      ],
+      "travel_minutes": [
+        7,
+        12
+      ],
+      "headway_rush": 8,
+      "headway_normal": 12,
+      "first_train": "06:00",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "大兴机场方向",
+          "terminal": "大兴机场",
+          "reverse": false
+        },
+        {
+          "label": "草桥方向",
+          "terminal": "草桥",
+          "reverse": false
+        }
+      ]
+    },
+    {
+      "id": "bj_mcp",
+      "name": "北京地铁昌平线",
+      "short_name": "昌平线",
+      "type": "metro",
+      "color": "#C881AF",
+      "color2": "",
+      "operator": "北京市地铁运营有限公司",
+      "stations": [
+        "蓟门桥",
+        "西土城",
+        "学院桥",
+        "六道口",
+        "学知园",
+        "清河小营桥",
+        "朱房北",
+        "清河站",
+        "西二旗",
+        "生命科学园",
+        "朱辛庄",
+        "巩华城",
+        "沙河",
+        "沙河高教园",
+        "南邵",
+        "北邵洼",
+        "昌平东关",
+        "昌平",
+        "十三陵景区",
+        "昌平西山口"
+      ],
+      "travel_minutes": [
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+      ],
+      "headway_rush": 3,
+      "headway_normal": 6,
+      "first_train": "05:00",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "昌平西山口方向",
+          "terminal": "昌平西山口",
+          "reverse": false
+        },
+        {
+          "label": "蓟门桥方向",
+          "terminal": "蓟门桥",
+          "reverse": false
+        }
+      ]
+    },
+    {
+      "id": "bj_myz",
+      "name": "北京地铁亦庄线",
+      "short_name": "亦庄线",
+      "type": "metro",
+      "color": "#C30074",
+      "color2": "",
+      "operator": "北京市地铁运营有限公司",
+      "stations": [
+        "宋家庄",
+        "肖村",
+        "小红门",
+        "旧宫",
+        "亦庄桥",
+        "亦庄文化园",
+        "万源街",
+        "荣京东街",
+        "荣昌东街",
+        "同济南路",
+        "经海路",
+        "次渠南",
+        "次渠",
+        "亦庄火车站"
+      ],
+      "travel_minutes": [
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+      ],
+      "headway_rush": 3,
+      "headway_normal": 6,
+      "first_train": "05:00",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "亦庄火车站方向",
+          "terminal": "亦庄火车站",
+          "reverse": false
+        },
+        {
+          "label": "宋家庄方向",
+          "terminal": "宋家庄",
+          "reverse": false
+        }
+      ]
+    },
+    {
+      "id": "bj_mfs",
+      "name": "北京地铁房山线",
+      "short_name": "房山线",
+      "type": "metro",
+      "color": "#C9602B",
+      "color2": "",
+      "operator": "北京市地铁运营有限公司",
+      "stations": [
+        "东管头南",
+        "首经贸",
+        "花乡东桥",
+        "白盆窑",
+        "郭公庄",
+        "大葆台",
+        "稻田",
+        "长阳",
+        "篱笆房",
+        "广阳城",
+        "良乡大学城北",
+        "良乡大学城",
+        "良乡大学城西",
+        "良乡南关",
+        "苏庄",
+        "阎村东"
+      ],
+      "travel_minutes": [
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+      ],
+      "headway_rush": 3,
+      "headway_normal": 6,
+      "first_train": "05:00",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "阎村东方向",
+          "terminal": "阎村东",
+          "reverse": false
+        },
+        {
+          "label": "东管头南方向",
+          "terminal": "东管头南",
+          "reverse": false
+        }
+      ]
+    },
+    {
+      "id": "bj_myf",
+      "name": "北京地铁燕房线",
+      "short_name": "燕房线",
+      "type": "metro",
+      "color": "#C9602B",
+      "color2": "",
+      "operator": "北京市轨道交通运营管理有限公司",
+      "stations": [
+        "阎村东",
+        "紫草坞",
+        "阎村",
+        "星城",
+        "大石河东",
+        "马各庄",
+        "饶乐府",
+        "房山城关",
+        "燕山"
+      ],
+      "travel_minutes": [
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+      ],
+      "headway_rush": 3,
+      "headway_normal": 6,
+      "first_train": "05:00",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "燕山方向",
+          "terminal": "燕山",
+          "reverse": false
+        },
+        {
+          "label": "阎村东方向",
+          "terminal": "阎村东",
+          "reverse": false
+        }
+      ]
+    },
+    {
+      "id": "bj_ms1",
+      "name": "北京磁悬浮S1线",
+      "short_name": "S1线",
+      "type": "maglev",
+      "color": "#9E5A2A",
+      "color2": "",
+      "operator": "北京市地铁运营有限公司",
+      "stations": [
+        "苹果园",
+        "金安桥",
+        "四道桥",
+        "桥户营",
+        "上岸",
+        "栗园庄",
+        "小园",
+        "石厂"
+      ],
+      "travel_minutes": [
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+      ],
+      "headway_rush": 8,
+      "headway_normal": 12,
       "first_train": "06:00",
       "last_train": "22:00",
       "ring": false,
       "directions": [
         {
-          "label": "乔庄东方向",
-          "terminal": "乔庄东",
+          "label": "石厂方向",
+          "terminal": "石厂",
           "reverse": false
         },
         {
-          "label": "良乡方向",
-          "terminal": "良乡",
+          "label": "苹果园方向",
+          "terminal": "苹果园",
           "reverse": false
         }
       ]
     },
     {
       "id": "bj_tram_xijiao",
-      "name": "西郊线(有轨电车)",
+      "name": "西郊线",
       "short_name": "西郊线",
       "type": "tram",
-      "color": "#00A6A8",
+      "color": "#FF0000",
       "color2": "",
-      "operator": "",
+      "operator": "北京公交有轨电车有限公司",
       "stations": [
         "巴沟",
         "颐和园西门",
@@ -719,37 +1847,100 @@
       ]
     },
     {
+      "id": "bj_tram_yzt1",
+      "name": "亦庄T1线",
+      "short_name": "亦庄T1线",
+      "type": "tram",
+      "color": "#FF0000",
+      "color2": "",
+      "operator": "北京公交有轨电车有限公司",
+      "stations": [
+        "定海园",
+        "定海园西",
+        "经海一路",
+        "亦创会展中心",
+        "荣昌东街",
+        "亦庄同仁",
+        "鹿圈东",
+        "泰河路",
+        "九号村",
+        "四海庄",
+        "太和桥北",
+        "瑞合庄",
+        "融兴街",
+        "屈庄"
+      ],
+      "travel_minutes": [
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+      ],
+      "headway_rush": 8,
+      "headway_normal": 12,
+      "first_train": "06:00",
+      "last_train": "22:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "屈庄方向",
+          "terminal": "屈庄",
+          "reverse": false
+        },
+        {
+          "label": "定海园方向",
+          "terminal": "定海园",
+          "reverse": false
+        }
+      ]
+    },
+    {
       "id": "bj_bus_brt1",
       "name": "快速公交1号线",
       "short_name": "BRT1",
       "type": "bus",
-      "color": "#C91E63",
+      "color": "#54C0FF",
       "color2": "",
       "operator": "",
       "stations": [
-        "前门",
-        "天桥",
-        "永定门外",
         "沙子口",
         "木樨园桥",
-        "木樨园桥南",
         "南苑路果园",
-        "大红门桥",
         "大红门西里",
-        "五爱屯",
+        "大红门桥",
+        "久敬庄",
+        "和义农场",
+        "和义南",
+        "三营门",
+        "西洼地",
+        "东高地",
+        "六营门",
+        "东营房",
         "德茂庄"
       ],
       "travel_minutes": [
-        3,
-        4.0,
-        4.0,
-        4.0,
-        4.0,
-        4.0,
-        4.0,
-        4,
-        4.0,
-        5
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
       ],
       "headway_rush": 3,
       "headway_normal": 5,
@@ -763,55 +1954,215 @@
           "reverse": false
         },
         {
-          "label": "前门方向",
-          "terminal": "前门",
+          "label": "沙子口方向",
+          "terminal": "沙子口",
           "reverse": false
         }
       ]
     },
     {
-      "id": "bj_rail_jingzhang",
-      "name": "京张高铁",
-      "short_name": "京张高铁",
-      "type": "national_rail",
-      "color": "#1A1A1A",
-      "color2": "#FFFFFF",
-      "operator": "中国铁路北京局",
+      "id": "bj_bus_brt2",
+      "name": "快速公交2号线",
+      "short_name": "BRT2",
+      "type": "bus",
+      "color": "#54C0FF",
+      "color2": "",
+      "operator": "",
       "stations": [
-        "北京北",
-        "清河",
-        "沙河",
-        "昌平",
-        "八达岭长城",
-        "怀来",
-        "下花园北",
-        "宣化北",
-        "张家口"
+        "朝阳门",
+        "东大桥",
+        "东大桥东",
+        "呼家楼东",
+        "小庄路口东",
+        "红庙路口西",
+        "英家坟",
+        "慈云寺",
+        "东八里庄",
+        "十里堡",
+        "甘露园",
+        "朝阳路太平庄",
+        "民航总医院",
+        "大黄庄桥西",
+        "定福庄",
+        "第二外国语学院",
+        "朝阳路三间房",
+        "周家井",
+        "管庄",
+        "杨闸环岛西"
       ],
       "travel_minutes": [
-        8,
-        7,
-        8,
-        12,
-        14,
-        13,
-        12,
-        12
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
       ],
-      "headway_rush": 15,
-      "headway_normal": 30,
-      "first_train": "06:00",
-      "last_train": "22:00",
+      "headway_rush": 3,
+      "headway_normal": 5,
+      "first_train": "05:00",
+      "last_train": "23:00",
       "ring": false,
       "directions": [
         {
-          "label": "张家口方向",
-          "terminal": "张家口",
+          "label": "杨闸环岛西方向",
+          "terminal": "杨闸环岛西",
           "reverse": false
         },
         {
-          "label": "北京北方向",
-          "terminal": "北京北",
+          "label": "朝阳门方向",
+          "terminal": "朝阳门",
+          "reverse": false
+        }
+      ]
+    },
+    {
+      "id": "bj_bus_brt3",
+      "name": "快速公交3号线",
+      "short_name": "BRT3",
+      "type": "bus",
+      "color": "#54C0FF",
+      "color2": "",
+      "operator": "",
+      "stations": [
+        "安定门",
+        "蒋宅口",
+        "安贞桥北",
+        "五路居",
+        "炎黄艺术馆",
+        "慧忠北里",
+        "慧忠北里北",
+        "仰山桥南",
+        "天乐园小区",
+        "立水桥南",
+        "立水桥北",
+        "天通西苑南",
+        "地铁天通苑南站",
+        "天通苑太平庄",
+        "地铁天通苑站",
+        "地铁天通苑北站",
+        "东三旗",
+        "平西王府路口南",
+        "王府温馨公寓",
+        "宏福苑小区南",
+        "宏福苑小区西"
+      ],
+      "travel_minutes": [
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+      ],
+      "headway_rush": 3,
+      "headway_normal": 5,
+      "first_train": "05:00",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "宏福苑小区西方向",
+          "terminal": "宏福苑小区西",
+          "reverse": false
+        },
+        {
+          "label": "安定门方向",
+          "terminal": "安定门",
+          "reverse": false
+        }
+      ]
+    },
+    {
+      "id": "bj_bus_brt4",
+      "name": "快速公交4号线",
+      "short_name": "BRT4",
+      "type": "bus",
+      "color": "#54C0FF",
+      "color2": "",
+      "operator": "",
+      "stations": [
+        "阜成门",
+        "展览路",
+        "白堆子口西",
+        "西钓鱼台",
+        "阜永路口西",
+        "阜玉路口",
+        "砂石路口",
+        "龚村东口",
+        "杨庄东",
+        "杨庄",
+        "金安桥",
+        "广宁村",
+        "石景山火车站",
+        "麻峪",
+        "侯庄子",
+        "双峪",
+        "门头沟教委小区",
+        "中门寺街",
+        "龙泉西公交场站"
+      ],
+      "travel_minutes": [
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+      ],
+      "headway_rush": 3,
+      "headway_normal": 5,
+      "first_train": "05:00",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "龙泉西公交场站方向",
+          "terminal": "龙泉西公交场站",
+          "reverse": false
+        },
+        {
+          "label": "阜成门方向",
+          "terminal": "阜成门",
           "reverse": false
         }
       ]
@@ -826,6 +2177,34 @@
     [
       "北京站",
       "北京"
+    ],
+    [
+      "西直门",
+      "北京北"
+    ],
+    [
+      "北京西站",
+      "北京西"
+    ],
+    [
+      "丰台站",
+      "北京丰台"
+    ],
+    [
+      "亦庄火车站",
+      "亦庄"
+    ],
+    [
+      "朝阳站",
+      "北京朝阳"
+    ],
+    [
+      "黄村火车站",
+      "北京大兴"
+    ],
+    [
+      "清河站",
+      "清河"
     ]
   ],
   "aliases": []

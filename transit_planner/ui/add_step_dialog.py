@@ -19,7 +19,8 @@ from PySide6.QtWidgets import (
 from ..core import engine as E
 from ..core.models import (
     Line, Step, TYPE_METRO, TYPE_BUS, TYPE_SUBURBAN, TYPE_TRAM,
-    TYPE_RAIL, TYPE_MAGLEV, TYPE_FERRY, CityLibrary, type_display,
+    TYPE_MONORAIL, TYPE_CLOUDRAIL, TYPE_RAIL, TYPE_MAGLEV, TYPE_FERRY,
+    CityLibrary, type_display,
 )
 from ..core.railway import build_12306_url
 from ..core.settings import AppSettings
@@ -29,7 +30,8 @@ DEFAULT_COLOR = "#888888"
 
 # 内置交通类型（单选按钮顺序）
 DEFAULT_TYPE_KEYS = [TYPE_METRO, TYPE_BUS, TYPE_SUBURBAN, TYPE_TRAM,
-                     TYPE_RAIL, TYPE_MAGLEV, TYPE_FERRY]
+                     TYPE_MONORAIL, TYPE_CLOUDRAIL, TYPE_RAIL, TYPE_MAGLEV,
+                     TYPE_FERRY]
 
 
 def _parse_hhmm(text: str) -> int | None:
