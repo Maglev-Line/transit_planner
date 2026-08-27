@@ -41,16 +41,32 @@ def _branch_base(name: str) -> str:
     return s
 
 
+def _branch_shared_run(br: Line, main: Line) -> int:
+    """支线沿站表中与主线共享的最长连续站数。
+
+    贯通运营的支线会在站点列表里重复主线的共线段（如 上海5号线支线重复 莘庄→东川路 7 站）；
+    独立运营的线路只与主线相交一个换乘站（如 重庆6号线支线仅与 6号线 共「刘家坪」1 站）。
+    """
+    shared = set(main.stations)
+    best = cur = 0
+    for s in br.stations:
+        cur = cur + 1 if s in shared else 0
+        if cur > best:
+            best = cur
+    return best
+
+
 def is_branch_line(city: City | None, main: Line | None, ln: Line) -> bool:
     """判断 ln 是否为 main 的支线。
 
-    规则（均需与主线共站）：
+    规则（均需与主线共线 ≥ 2 站，即贯通运营、支线在站表里重复主线站名）：
     - ID 遵循 <主线ID>b 命名约定（如 sh_m5 → sh_m5b）；或
     - 名称含『支线』且线路基名与主线相同（如 上海地铁5号线支线 ↔ 上海地铁5号线）。
+    仅与主线相交一个换乘站的独立运营线路（如 重庆6号线支线 ↔ 6号线 仅共「刘家坪」）不算支线。
     """
     if city is None or main is None or ln.id == main.id:
         return False
-    if not (set(ln.stations) & set(main.stations)):
+    if _branch_shared_run(ln, main) < 2:
         return False
     if main.id and (ln.id.startswith(main.id + "b") or ln.id.startswith(main.id + "_b")):
         return True

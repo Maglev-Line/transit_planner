@@ -18,6 +18,7 @@ TYPE_BUS = "bus"              # 公交
 TYPE_RAIL = "national_rail"   # 国家铁路
 TYPE_MAGLEV = "maglev"        # 磁浮
 TYPE_FERRY = "ferry"          # 轮渡
+TYPE_CABLEWAY = "cableway"    # 索道（缆车）
 
 TYPE_LABELS = {
     TYPE_METRO: "地铁",
@@ -29,6 +30,7 @@ TYPE_LABELS = {
     TYPE_RAIL: "国家铁路",
     TYPE_MAGLEV: "磁浮",
     TYPE_FERRY: "轮渡",
+    TYPE_CABLEWAY: "索道",
 }
 
 
@@ -38,7 +40,7 @@ def type_display(key: str) -> str:
 
 
 def all_type_keys() -> list[str]:
-    """内置交通类型 key 列表（含轮渡）。"""
+    """内置交通类型 key 列表（含轮渡/索道）。"""
     return list(TYPE_LABELS)
 
 

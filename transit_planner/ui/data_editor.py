@@ -14,7 +14,7 @@ from PySide6.QtGui import QColor, QIcon, QPainter, QPixmap
 from ..core.models import (
     City, Line, Direction, TYPE_LABELS,
     TYPE_METRO, TYPE_SUBURBAN, TYPE_TRAM, TYPE_MONORAIL, TYPE_CLOUDRAIL,
-    TYPE_BUS, TYPE_RAIL, TYPE_MAGLEV, TYPE_FERRY,
+    TYPE_BUS, TYPE_RAIL, TYPE_MAGLEV, TYPE_FERRY, TYPE_CABLEWAY,
 )
 from ..core.settings import AppSettings
 from .line_diagram import LineDiagramWidget, find_branch_lines
@@ -22,7 +22,7 @@ from .line_diagram import LineDiagramWidget, find_branch_lines
 TYPE_CHOICES = [(TYPE_METRO, "地铁"), (TYPE_SUBURBAN, "市域铁路"), (TYPE_TRAM, "有轨电车"),
                 (TYPE_MONORAIL, "单轨"), (TYPE_CLOUDRAIL, "比亚迪云巴"),
                 (TYPE_BUS, "公交"), (TYPE_RAIL, "国家铁路"), (TYPE_MAGLEV, "磁浮"),
-                (TYPE_FERRY, "轮渡")]
+                (TYPE_FERRY, "轮渡"), (TYPE_CABLEWAY, "索道")]
 
 
 def swatch(color_hex: str, color2: str = "", size: int = 16) -> QIcon:
