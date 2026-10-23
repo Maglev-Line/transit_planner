@@ -12,7 +12,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QIcon, QPainter, QPixmap
 
 from ..core.models import (
-    City, Line, Direction, TYPE_LABELS,
+    City, Line, Direction, LineError, TYPE_LABELS,
     TYPE_METRO, TYPE_SUBURBAN, TYPE_TRAM, TYPE_MONORAIL, TYPE_CLOUDRAIL,
     TYPE_BUS, TYPE_RAIL, TYPE_MAGLEV, TYPE_FERRY, TYPE_CABLEWAY,
 )
@@ -251,8 +251,12 @@ class DataEditor(QDialog):
             return
         name = self.current_city.name
         if QMessageBox.question(self, "删除城市", f"确定删除城市 {name} 的线路库？") == QMessageBox.Yes:
+            try:
+                self.lib.delete(name)
+            except LineError as ex:
+                QMessageBox.warning(self, "无法删除", str(ex))
+                return
             self.cities.pop(name, None)
-            self.lib.delete(name)
             self._reload_cities()
 
     # ---------------- 线路 ----------------

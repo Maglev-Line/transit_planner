@@ -39,6 +39,11 @@ class SettingsDialog(QDialog):
         # 常用出行
         gb_fav = QGroupBox("常用出行（下次规划时自动预填）")
         gf = QGridLayout(gb_fav)
+        self._station_inputs: dict[str, list[QLineEdit]] = {
+            "metro": [], "bus": [],
+        }
+        self._station_input_rows: dict[QLineEdit, QWidget] = {}
+        self._station_layouts: dict[str, QVBoxLayout] = {}
         gf.addWidget(QLabel("最常出行城市："), 0, 0)
         self.cb_city = QComboBox()
         self.cb_city.setEditable(True)
@@ -46,14 +51,10 @@ class SettingsDialog(QDialog):
             self.cb_city.addItem(name)
         gf.addWidget(self.cb_city, 0, 1, 1, 2)
         gf.addWidget(QLabel("最常出行地铁站："), 1, 0)
-        self.ed_metro = QLineEdit()
-        self.ed_metro.setPlaceholderText("如：徐家汇")
-        gf.addWidget(self.ed_metro, 1, 1, 1, 2)
+        gf.addWidget(self._build_station_inputs("metro", "如：徐家汇"), 1, 1, 1, 2)
         gf.addWidget(QLabel("最常出行公交站："), 2, 0)
-        self.ed_bus = QLineEdit()
-        self.ed_bus.setPlaceholderText("如：人民广场站")
-        gf.addWidget(self.ed_bus, 2, 1, 1, 2)
-        lbl_tip = QLabel("下次新建方案时，自动选择该城市，并在第一段行程中预填最常出行的地铁站。")
+        gf.addWidget(self._build_station_inputs("bus", "如：人民广场站"), 2, 1, 1, 2)
+        lbl_tip = QLabel("可保存多个地铁站和公交站；下次新建方案时可选择常用起点站。")
         lbl_tip.setWordWrap(True)
         lbl_tip.setStyleSheet("color:#666;font-size:8.5pt;")
         gf.addWidget(lbl_tip, 3, 0, 1, 3)
@@ -158,11 +159,58 @@ class SettingsDialog(QDialog):
         btns.addWidget(b_cancel)
         root.addLayout(btns)
 
+    def _build_station_inputs(self, kind: str, placeholder: str) -> QWidget:
+        container = QWidget()
+        layout = QVBoxLayout(container)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self._station_layouts[kind] = layout
+        btn_add = QPushButton("＋ 添加站点")
+        btn_add.clicked.connect(lambda _checked=False, k=kind, p=placeholder: self._add_station_input(k, p))
+        layout.addWidget(btn_add)
+        return container
+
+    def _add_station_input(self, kind: str, placeholder: str, text: str = "") -> None:
+        row_widget = QWidget()
+        row = QHBoxLayout(row_widget)
+        row.setContentsMargins(0, 0, 0, 0)
+        editor = QLineEdit(text)
+        editor.setPlaceholderText(placeholder)
+        row.addWidget(editor, 1)
+        btn_remove = QPushButton("－")
+        btn_remove.setFixedWidth(32)
+        btn_remove.setToolTip("删除此站点")
+        btn_remove.clicked.connect(
+            lambda _checked=False, k=kind, e=editor: self._remove_station_input(k, e)
+        )
+        row.addWidget(btn_remove)
+        layout = self._station_layouts[kind]
+        layout.insertWidget(layout.count() - 1, row_widget)
+        self._station_inputs[kind].append(editor)
+        self._station_input_rows[editor] = row_widget
+
+    def _remove_station_input(self, kind: str, editor: QLineEdit) -> None:
+        inputs = self._station_inputs[kind]
+        if len(inputs) == 1:
+            editor.clear()
+            return
+        inputs.remove(editor)
+        row_widget = self._station_input_rows.pop(editor)
+        self._station_layouts[kind].removeWidget(row_widget)
+        row_widget.deleteLater()
+
     # ---------------- 加载 / 保存 ----------------
     def _load(self, s: AppSettings):
         self.cb_city.setCurrentText(s.favorite_city)
-        self.ed_metro.setText(s.favorite_metro)
-        self.ed_bus.setText(s.favorite_bus)
+        for kind, stations in (("metro", s.favorite_metro), ("bus", s.favorite_bus)):
+            if stations:
+                for station in stations:
+                    self._add_station_input(
+                        kind, "如：徐家汇" if kind == "metro" else "如：人民广场站", station
+                    )
+            else:
+                self._add_station_input(
+                    kind, "如：徐家汇" if kind == "metro" else "如：人民广场站"
+                )
         self.chk_auto.setChecked(s.auto_save)
         self.ed_dir.setText(s.auto_save_dir)
         self.ed_dir.setEnabled(s.auto_save)
@@ -182,8 +230,14 @@ class SettingsDialog(QDialog):
             return
         s = AppSettings(
             favorite_city=self.cb_city.currentText().strip(),
-            favorite_metro=self.ed_metro.text().strip(),
-            favorite_bus=self.ed_bus.text().strip(),
+            favorite_metro=list(dict.fromkeys(
+                editor.text().strip() for editor in self._station_inputs["metro"]
+                if editor.text().strip()
+            )),
+            favorite_bus=list(dict.fromkeys(
+                editor.text().strip() for editor in self._station_inputs["bus"]
+                if editor.text().strip()
+            )),
             auto_save=self.chk_auto.isChecked(),
             auto_save_dir=self.ed_dir.text().strip(),
         )

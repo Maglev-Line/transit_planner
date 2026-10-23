@@ -200,6 +200,8 @@ class MainWindow(QMainWindow):
         self.lbl_pos.setStyleSheet("font-weight:bold;")
         hh.addWidget(self.lbl_pos)
         self.list_hints = QListWidget()
+        self.list_hints.setToolTip("双击换乘线路，预填该线路和当前站作为下一段行程。")
+        self.list_hints.itemDoubleClicked.connect(self._on_hint_dblclicked)
         hh.addWidget(self.list_hints)
         rv.addWidget(box_hint)
 
@@ -358,7 +360,7 @@ class MainWindow(QMainWindow):
         self._open_add_step(self.city.line(lid))
 
     # ---------------- 添加 / 编辑行程 ----------------
-    def _open_add_step(self, line=None):
+    def _open_add_step(self, line=None, start_station: str | None = None):
         # line 仅来自「双击线路库」传入的 Line 对象；其余情况（如按钮 click 信号）忽略
         if not (line is None or hasattr(line, "id")):
             line = None
@@ -366,7 +368,7 @@ class MainWindow(QMainWindow):
                             city_label=self.cb_city.currentText(),
                             prefill_favorite=not self.trip.steps)
         if line is not None:
-            dlg.preselect(line)
+            dlg.preselect(line, start_station)
         if dlg.exec():
             step = dlg.result_step()
             if step is not None:
@@ -398,14 +400,30 @@ class MainWindow(QMainWindow):
     def _fix_current_pos(self):
         self.current_pos = self.trip.steps[-1].to_station if self.trip.steps else None
 
+    def _on_hint_dblclicked(self, item: QListWidgetItem):
+        if self.city is None or self.current_pos is None:
+            return
+        line = self.city.line(item.data(Qt.UserRole))
+        start_station = item.data(Qt.UserRole + 1)
+        self._open_add_step(line, start_station)
+
     # ---------------- 信息面板 ----------------
     def _update_hints_and_stats(self):
         if self.current_pos and self.city:
             self.lbl_pos.setText(f"当前在站：{self.current_pos}")
             self.list_hints.clear()
-            for ln, dirs in E.transfer_hints(self.city, self.current_pos):
+            last_step = self.trip.steps[-1] if self.trip.steps else None
+            exclude_line_id = (
+                last_step.line_id if last_step is not None and not last_step.manual else None
+            )
+            for ln, dirs in E.transfer_hints(
+                self.city, self.current_pos, exclude_line_id=exclude_line_id
+            ):
                 item = QListWidgetItem(swatch_icon(ln.color, ln.color2),
                                        f"{ln.name}　{' / '.join(d.label for d in dirs)}")
+                item.setData(Qt.UserRole, ln.id)
+                item.setData(Qt.UserRole + 1, E.station_name_on_line(self.city, ln, self.current_pos))
+                item.setToolTip("双击以此线路和当前站作为起点，添加下一段行程")
                 self.list_hints.addItem(item)
         else:
             self.lbl_pos.setText("尚未开始（请先添加行程）")

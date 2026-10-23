@@ -173,6 +173,25 @@ class AddStepDialog(QDialog):
 
         root.addLayout(form)
 
+        self.cb_favorite_start = QComboBox()
+        self.cb_favorite_start.addItem("选择常用起点站（可选）")
+        for label, stations in (
+            ("地铁", self.settings.favorite_metro),
+            ("公交", self.settings.favorite_bus),
+        ):
+            for station in stations:
+                station = station.strip()
+                if station:
+                    self.cb_favorite_start.addItem(f"{label}：{station}", station)
+        self.cb_favorite_start.activated.connect(self._use_favorite_start)
+        self.cb_favorite_start.setVisible(
+            self._prefill_favorite
+            and (self.city is None or not self.settings.favorite_city
+                 or self.city.name == self.settings.favorite_city)
+            and self.cb_favorite_start.count() > 1
+        )
+        root.addWidget(self.cb_favorite_start)
+
         # 交通类型（手动输入线路时选择）
         root.addWidget(self._build_type_group())
 
@@ -461,9 +480,11 @@ class AddStepDialog(QDialog):
         self._populate_station_combos()
         self.lbl_reco.setText(f"已套用数据库线路：{line.name}（{line.type_label}，班次：{line.headway_text}）")
 
-    def preselect(self, line: Line):
+    def preselect(self, line: Line, start_station: str | None = None):
         """外部预选线路（如双击线路库条目）：直接套用该线路信息。"""
         self._apply_recommendation(line)
+        if start_station:
+            self.cb_from.setEditText(start_station)
 
     # ---------------- 站点 / 方向联动 ----------------
     def _all_stations(self) -> list[str]:
@@ -513,16 +534,29 @@ class AddStepDialog(QDialog):
 
     # ---------------- 常用出行预填 ----------------
     def _favorite_prefill(self):
-        """新建方案第一段行程时，按设置中的最常出行地铁站预填起点站。"""
+        """新建方案第一段行程时，按设置中的常用站点预填起点。"""
         if not self._prefill_favorite:
             return
         s = self.settings
-        if not s or not s.favorite_metro:
+        if not s:
             return
         if self.city is not None and s.favorite_city and self.city.name != s.favorite_city:
             return  # 当前城市与常用城市不一致时不预填
-        if not self.cb_from.currentText().strip():
-            self.cb_from.setEditText(s.favorite_metro)
+        metro_stations = [station.strip() for station in s.favorite_metro if station.strip()]
+        bus_stations = [station.strip() for station in s.favorite_bus if station.strip()]
+        stations = metro_stations or bus_stations
+        if not stations:
+            return
+        self.cb_from.setEditText(stations[0])
+        for index in range(1, self.cb_favorite_start.count()):
+            if self.cb_favorite_start.itemData(index) == stations[0]:
+                self.cb_favorite_start.setCurrentIndex(index)
+                break
+
+    def _use_favorite_start(self, index: int) -> None:
+        station = self.cb_favorite_start.itemData(index)
+        if station:
+            self.cb_from.setEditText(str(station))
 
     # ---------------- 颜色 ----------------
     def _pick_color(self):

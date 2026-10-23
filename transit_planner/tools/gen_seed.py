@@ -669,11 +669,22 @@ def chongqing() -> City:
 def main() -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     import json
-    for c in (shanghai(), beijing(), suzhou(), guangzhou(), shenzhen(),
-              foshan(), dongguan(), chongqing()):
+    for c in (shanghai(), beijing(), suzhou(), shenzhen(), dongguan(), chongqing()):
         path = DATA_DIR / f"{c.name}.json"
         path.write_text(json.dumps(c.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"{c.name}: {len(c.lines)} 条线路，共 {sum(len(l.stations) for l in c.lines)} 个站点")
+
+    # 广州与佛山共用一份线路库（广州-佛山.json），与 CityLibrary.SHARED_CITY_FILES 保持一致
+    gz, fs = guangzhou(), foshan()
+    merged = City(name="广州-佛山", region="华南", version="1.0")
+    merged.lines = [*gz.lines, *[ln for ln in fs.lines if ln.id not in {x.id for x in gz.lines}]]
+    merged.external_walks = {**gz.external_walks, **fs.external_walks}
+    merged.transfers = gz.transfers + [g for g in fs.transfers if g not in gz.transfers]
+    merged.aliases = gz.aliases + [g for g in fs.aliases if g not in gz.aliases]
+    path = DATA_DIR / f"{merged.name}.json"
+    path.write_text(json.dumps(merged.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"{merged.name}: {len(merged.lines)} 条线路，"
+          f"共 {sum(len(l.stations) for l in merged.lines)} 个站点")
 
 
 if __name__ == "__main__":
