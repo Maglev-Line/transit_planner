@@ -35,7 +35,7 @@
 - **方案保存/载入**：行程方案以 JSON 保存，可反复调整绕路方案
 - **可扩展**：`transit_planner/providers/` 预留统一数据接口，后续可接入高德 / 百度 / GTFS 等在线数据
 
-*请注意：内置的广州、深圳、佛山、东莞的城市线路不全，也不十分准确，要生成运转计划，建议优先手动录入。后续将进行优化。*
+*请注意：内置的深圳、东莞的城市线路不全，也不十分准确，要生成运转计划，建议优先手动录入。后续将进行优化。*
 
 ## 安装与运行
 
@@ -88,7 +88,7 @@ python app.py
       "id": "sh_m1",
       "name": "上海地铁1号线",
       "short_name": "1号线",
-      "type": "metro",            // metro/suburban/tram/monorail/cloudrail/bus/national_rail/maglev/ferry，或自定义类型名
+      "type": "metro",            // metro/suburban/tram/monorail/cloudrail/bus/national_rail/maglev/ferry/cableway/apm，或自定义类型名
       "color": "#E60012",         // 线路标志色（主色）
       "color2": "#FFFFFF",        // 副色（双色标志色，如国铁黑白、磁浮；可留空）
       "operator": "",

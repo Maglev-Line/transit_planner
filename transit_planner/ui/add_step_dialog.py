@@ -20,7 +20,7 @@ from ..core import engine as E
 from ..core.models import (
     Line, Step, TYPE_METRO, TYPE_BUS, TYPE_SUBURBAN, TYPE_TRAM,
     TYPE_MONORAIL, TYPE_CLOUDRAIL, TYPE_RAIL, TYPE_MAGLEV, TYPE_FERRY,
-    TYPE_CABLEWAY,
+    TYPE_CABLEWAY, TYPE_APM,
     CityLibrary, type_display,
 )
 from ..core.railway import build_12306_url
@@ -32,7 +32,7 @@ DEFAULT_COLOR = "#888888"
 # 内置交通类型（单选按钮顺序）
 DEFAULT_TYPE_KEYS = [TYPE_METRO, TYPE_BUS, TYPE_SUBURBAN, TYPE_TRAM,
                      TYPE_MONORAIL, TYPE_CLOUDRAIL, TYPE_RAIL, TYPE_MAGLEV,
-                     TYPE_FERRY, TYPE_CABLEWAY]
+                     TYPE_FERRY, TYPE_CABLEWAY, TYPE_APM]
 
 
 def _parse_hhmm(text: str) -> int | None:

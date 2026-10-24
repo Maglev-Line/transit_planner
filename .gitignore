@@ -5,6 +5,7 @@ __pycache__/
 .venv/
 venv/
 env/
+AGENTS.md
 
 # 运行时产物
 *.pdf
