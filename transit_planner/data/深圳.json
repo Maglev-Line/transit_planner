@@ -8,7 +8,7 @@
       "name": "深圳地铁1号线",
       "short_name": "1号线",
       "type": "metro",
-      "color": "#00844A",
+      "color": "#07AC53",
       "color2": "",
       "operator": "",
       "stations": [
@@ -94,10 +94,10 @@
     },
     {
       "id": "szn_m2",
-      "name": "深圳地铁2号线(8号线共线)",
+      "name": "深圳地铁2号线",
       "short_name": "2号线",
       "type": "metro",
-      "color": "#E85D2F",
+      "color": "#B8591F",
       "color2": "",
       "operator": "",
       "stations": [
@@ -130,13 +130,20 @@
         "湖贝",
         "黄贝岭",
         "新秀",
+        "莲塘口岸",
+        "仙湖路",
         "莲塘",
         "梧桐山南",
         "沙头角",
         "海山",
         "盐田港西",
         "深外高中",
-        "盐田路"
+        "盐田路",
+        "鸿安围",
+        "盐田墟",
+        "大梅沙",
+        "小梅沙",
+        "溪涌"
       ],
       "travel_minutes": [
         3,
@@ -168,12 +175,19 @@
         3.0,
         3,
         3.0,
-        4,
+        3.0,
+        3.0,
+        4.0,
         3.0,
         3.0,
         3,
         3.0,
-        3
+        3,
+        3.0,
+        3.0,
+        4.0,
+        4.0,
+        4.0
       ],
       "headway_rush": 4,
       "headway_normal": 7,
@@ -182,8 +196,8 @@
       "ring": false,
       "directions": [
         {
-          "label": "盐田路方向",
-          "terminal": "盐田路",
+          "label": "溪涌方向",
+          "terminal": "溪涌",
           "reverse": false
         },
         {
@@ -198,10 +212,17 @@
       "name": "深圳地铁3号线",
       "short_name": "3号线",
       "type": "metro",
-      "color": "#00A9CE",
+      "color": "#00A6E0",
       "color2": "",
       "operator": "",
       "stations": [
+        "坪地六联",
+        "富坪",
+        "白石塘",
+        "低碳城",
+        "坪西",
+        "新生",
+        "梨园",
         "双龙",
         "南联",
         "龙城广场",
@@ -214,6 +235,8 @@
         "塘坑",
         "六约",
         "丹竹头",
+        "大芬",
+        "木棉湾",
         "布吉",
         "草埔",
         "水贝",
@@ -233,11 +256,9 @@
         "福保"
       ],
       "travel_minutes": [
-        3,
         3.0,
         3.0,
         3.0,
-        4,
         3.0,
         3.0,
         3.0,
@@ -245,14 +266,25 @@
         3,
         3.0,
         3.0,
-        4,
+        3.0,
+        4.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        4.0,
         3.0,
         3.0,
         3.0,
         3.0,
         3.0,
         3.0,
-        2,
+        2.0,
         3.0,
         3.0,
         3.0,
@@ -274,8 +306,8 @@
           "reverse": false
         },
         {
-          "label": "双龙方向",
-          "terminal": "双龙",
+          "label": "坪地六联方向",
+          "terminal": "坪地六联",
           "reverse": false
         }
       ]
@@ -285,7 +317,7 @@
       "name": "深圳地铁4号线",
       "short_name": "4号线",
       "type": "metro",
-      "color": "#D81E05",
+      "color": "#D23019",
       "color2": "",
       "operator": "",
       "stations": [
@@ -360,10 +392,13 @@
       "name": "深圳地铁5号线",
       "short_name": "5号线",
       "type": "metro",
-      "color": "#7D4E9F",
+      "color": "#92509C",
       "color2": "",
       "operator": "",
       "stations": [
+        "大剧院",
+        "东门",
+        "湖贝",
         "黄贝岭",
         "怡景",
         "太安",
@@ -372,15 +407,18 @@
         "布吉",
         "长龙",
         "下水径",
+        "上水径",
         "杨美",
+        "坂田",
         "五和",
         "民治",
         "深圳北站",
-        "西丽",
+        "长岭陂",
         "塘朗",
         "大学城",
-        "兴东",
+        "西丽",
         "留仙洞",
+        "兴东",
         "洪浪北",
         "灵芝",
         "翻身",
@@ -390,23 +428,17 @@
         "前海湾",
         "桂湾",
         "前湾",
+        "前湾公园",
         "妈湾",
         "铁路公园",
+        "荔湾",
         "赤湾"
       ],
       "travel_minutes": [
-        3,
-        3.0,
         3.0,
         3.0,
         3.0,
         3,
-        3.0,
-        3.0,
-        3.0,
-        3.0,
-        4,
-        5,
         3.0,
         3.0,
         3.0,
@@ -417,11 +449,27 @@
         3.0,
         3.0,
         3.0,
-        2,
+        3.0,
+        4.0,
+        4.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        2.0,
+        3.0,
         3.0,
         3.0,
         3.0,
         3,
+        3.0,
         3.0
       ],
       "headway_rush": 4,
@@ -436,8 +484,8 @@
           "reverse": false
         },
         {
-          "label": "黄贝岭方向",
-          "terminal": "黄贝岭",
+          "label": "大剧院方向",
+          "terminal": "大剧院",
           "reverse": false
         }
       ]
@@ -447,7 +495,7 @@
       "name": "深圳地铁6号线",
       "short_name": "6号线",
       "type": "metro",
-      "color": "#00A087",
+      "color": "#2BB6AF",
       "color2": "",
       "operator": "",
       "stations": [
@@ -459,16 +507,20 @@
         "公明广场",
         "红花山",
         "楼村",
-        "光明大街",
+        "科学公园",
         "光明",
+        "光明大街",
         "凤凰城",
         "长圳",
         "上屋",
+        "官田",
         "阳台山东",
         "元芬",
+        "上芬",
+        "红山",
         "深圳北站",
         "梅林关",
-        "翰林",
+        "翰岭",
         "银湖",
         "八卦岭",
         "体育中心",
@@ -476,7 +528,7 @@
         "科学馆"
       ],
       "travel_minutes": [
-        4,
+        4.0,
         3.0,
         3.0,
         3.0,
@@ -486,16 +538,20 @@
         3.0,
         3.0,
         3.0,
+        3.0,
         4,
-        3.0,
-        5,
-        3.0,
-        3.0,
-        5,
+        4.0,
+        5.0,
         3.0,
         3.0,
         3.0,
-        2,
+        3.0,
+        3.0,
+        5.0,
+        3.0,
+        3.0,
+        3.0,
+        2.0,
         3.0,
         3.0
       ],
@@ -518,11 +574,46 @@
       ]
     },
     {
+      "id": "szn_m6b",
+      "name": "深圳地铁6号线支线",
+      "short_name": "6号线支线",
+      "type": "metro",
+      "color": "#008981",
+      "color2": "",
+      "operator": "",
+      "stations": [
+        "光明",
+        "圳美",
+        "中大"
+      ],
+      "travel_minutes": [
+        3.0,
+        3.0
+      ],
+      "headway_rush": 6,
+      "headway_normal": 10,
+      "first_train": "06:30",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "中大方向",
+          "terminal": "中大",
+          "reverse": false
+        },
+        {
+          "label": "光明方向",
+          "terminal": "光明",
+          "reverse": false
+        }
+      ]
+    },
+    {
       "id": "szn_m7",
       "name": "深圳地铁7号线",
       "short_name": "7号线",
       "type": "metro",
-      "color": "#9B5CA5",
+      "color": "#024198",
       "color2": "",
       "operator": "",
       "stations": [
@@ -599,11 +690,64 @@
       ]
     },
     {
+      "id": "szn_m8",
+      "name": "深圳地铁8号线",
+      "short_name": "8号线",
+      "type": "metro",
+      "color": "#B8591F",
+      "color2": "",
+      "operator": "",
+      "stations": [
+        "莲塘",
+        "梧桐山南",
+        "沙头角",
+        "海山",
+        "盐田港西",
+        "深外高中",
+        "盐田路",
+        "鸿安围",
+        "盐田墟",
+        "大梅沙",
+        "小梅沙",
+        "溪涌"
+      ],
+      "travel_minutes": [
+        4.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        4.0,
+        4.0,
+        4.0
+      ],
+      "headway_rush": 5,
+      "headway_normal": 9,
+      "first_train": "06:30",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "溪涌方向",
+          "terminal": "溪涌",
+          "reverse": false
+        },
+        {
+          "label": "莲塘方向",
+          "terminal": "莲塘",
+          "reverse": false
+        }
+      ]
+    },
+    {
       "id": "szn_m9",
       "name": "深圳地铁9号线",
       "short_name": "9号线",
       "type": "metro",
-      "color": "#7A4E9F",
+      "color": "#876C72",
       "color2": "",
       "operator": "",
       "stations": [
@@ -682,11 +826,84 @@
       ]
     },
     {
+      "id": "szn_m10",
+      "name": "深圳地铁10号线",
+      "short_name": "10号线",
+      "type": "metro",
+      "color": "#EB6F95",
+      "color2": "",
+      "operator": "",
+      "stations": [
+        "福田口岸",
+        "福民",
+        "岗厦",
+        "岗厦北",
+        "莲花村",
+        "冬瓜岭",
+        "雅宝",
+        "南坑",
+        "光雅园",
+        "五和",
+        "坂田北",
+        "贝尔路",
+        "华为",
+        "岗头",
+        "雪象",
+        "甘坑",
+        "凉帽山",
+        "上李朗",
+        "木古",
+        "华南城",
+        "平湖",
+        "双拥街"
+      ],
+      "travel_minutes": [
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        4.0,
+        4.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        4.0,
+        3.0,
+        3.0,
+        3.0,
+        4.0,
+        3.0,
+        3.0
+      ],
+      "headway_rush": 4,
+      "headway_normal": 8,
+      "first_train": "06:30",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "双拥街方向",
+          "terminal": "双拥街",
+          "reverse": false
+        },
+        {
+          "label": "福田口岸方向",
+          "terminal": "福田口岸",
+          "reverse": false
+        }
+      ]
+    },
+    {
       "id": "szn_m11",
       "name": "深圳地铁11号线",
       "short_name": "11号线",
       "type": "metro",
-      "color": "#4A6FBF",
+      "color": "#691B40",
       "color2": "",
       "operator": "",
       "stations": [
@@ -749,11 +966,141 @@
       ]
     },
     {
+      "id": "szn_m12",
+      "name": "深圳地铁12号线",
+      "short_name": "12号线",
+      "type": "metro",
+      "color": "#A390AF",
+      "color2": "",
+      "operator": "",
+      "stations": [
+        "左炮台东",
+        "太子湾",
+        "海上世界",
+        "四海",
+        "南油",
+        "南山",
+        "桃园",
+        "大新",
+        "中山公园",
+        "同乐南",
+        "南头古城",
+        "新安公园",
+        "灵芝",
+        "洪浪北",
+        "上川",
+        "流塘",
+        "宝安客运站",
+        "坪洲",
+        "西乡",
+        "宝田一路",
+        "钟屋南",
+        "黄田",
+        "福永",
+        "桥头",
+        "塘尾",
+        "马安山",
+        "沙井",
+        "后亭",
+        "松岗",
+        "燕罗",
+        "海上田园东"
+      ],
+      "travel_minutes": [
+        4.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        4.0,
+        3.0,
+        3.0,
+        3.0,
+        4.0,
+        3.0,
+        3.0,
+        3.0,
+        4.0,
+        3.0,
+        4.0,
+        3.0,
+        3.0,
+        4.0,
+        4.0,
+        5.0,
+        4.0,
+        4.0,
+        4.0,
+        4.0,
+        3.0,
+        5.0,
+        4.0,
+        4.0
+      ],
+      "headway_rush": 5,
+      "headway_normal": 9,
+      "first_train": "06:20",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "海上田园东方向",
+          "terminal": "海上田园东",
+          "reverse": false
+        },
+        {
+          "label": "左炮台东方向",
+          "terminal": "左炮台东",
+          "reverse": false
+        }
+      ]
+    },
+    {
+      "id": "szn_m13",
+      "name": "深圳地铁13号线",
+      "short_name": "13号线",
+      "type": "metro",
+      "color": "#D18409",
+      "color2": "",
+      "operator": "",
+      "stations": [
+        "深圳湾口岸",
+        "后海",
+        "科苑",
+        "高新南",
+        "高新中"
+      ],
+      "travel_minutes": [
+        4.0,
+        3.0,
+        3.0,
+        3.0
+      ],
+      "headway_rush": 6,
+      "headway_normal": 10,
+      "first_train": "06:30",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "高新中方向",
+          "terminal": "高新中",
+          "reverse": false
+        },
+        {
+          "label": "深圳湾口岸方向",
+          "terminal": "深圳湾口岸",
+          "reverse": false
+        }
+      ]
+    },
+    {
       "id": "szn_m14",
       "name": "深圳地铁14号线",
       "short_name": "14号线",
       "type": "metro",
-      "color": "#E77C2E",
+      "color": "#E9CC63",
       "color2": "",
       "operator": "",
       "stations": [
@@ -801,6 +1148,186 @@
         {
           "label": "岗厦北方向",
           "terminal": "岗厦北",
+          "reverse": false
+        }
+      ]
+    },
+    {
+      "id": "szn_m16",
+      "name": "深圳地铁16号线",
+      "short_name": "16号线",
+      "type": "metro",
+      "color": "#3B308F",
+      "color2": "",
+      "operator": "",
+      "stations": [
+        "大运",
+        "大运中心",
+        "龙城公园",
+        "回龙埔",
+        "愉园",
+        "黄阁坑",
+        "盛平",
+        "龙园",
+        "宝龙",
+        "龙东",
+        "同乐",
+        "坪山围",
+        "坪山",
+        "东纵",
+        "石井",
+        "竹坑",
+        "田头",
+        "田心"
+      ],
+      "travel_minutes": [
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        4.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        4.0,
+        3.0,
+        3.0,
+        4.0,
+        3.0
+      ],
+      "headway_rush": 6,
+      "headway_normal": 10,
+      "first_train": "06:30",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "田心方向",
+          "terminal": "田心",
+          "reverse": false
+        },
+        {
+          "label": "大运方向",
+          "terminal": "大运",
+          "reverse": false
+        }
+      ]
+    },
+    {
+      "id": "szn_m20",
+      "name": "深圳地铁20号线",
+      "short_name": "20号线",
+      "type": "metro",
+      "color": "#97D4DA",
+      "color2": "",
+      "operator": "",
+      "stations": [
+        "机场北",
+        "国展北",
+        "国展南",
+        "会展城"
+      ],
+      "travel_minutes": [
+        4.0,
+        3.0,
+        3.0
+      ],
+      "headway_rush": 6,
+      "headway_normal": 10,
+      "first_train": "06:30",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "会展城方向",
+          "terminal": "会展城",
+          "reverse": false
+        },
+        {
+          "label": "机场北方向",
+          "terminal": "机场北",
+          "reverse": false
+        }
+      ]
+    },
+    {
+      "id": "szn_tram_lh",
+      "name": "龙华现代有轨电车",
+      "short_name": "有轨电车",
+      "type": "tram",
+      "color": "#8CD33B",
+      "color2": "",
+      "operator": "",
+      "stations": [
+        "清湖",
+        "清龙",
+        "清湖学校",
+        "松和",
+        "大和",
+        "上围",
+        "观湖",
+        "新澜"
+      ],
+      "travel_minutes": [
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0,
+        3.0
+      ],
+      "headway_rush": 10,
+      "headway_normal": 15,
+      "first_train": "06:00",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "新澜方向",
+          "terminal": "新澜",
+          "reverse": false
+        },
+        {
+          "label": "清湖方向",
+          "terminal": "清湖",
+          "reverse": false
+        }
+      ]
+    },
+    {
+      "id": "szn_cloud_ps",
+      "name": "坪山云巴1号线",
+      "short_name": "云巴",
+      "type": "cloudrail",
+      "color": "#2370E5",
+      "color2": "",
+      "operator": "",
+      "stations": [
+        "坪山高铁站",
+        "深圳技术大学"
+      ],
+      "travel_minutes": [
+        20.0
+      ],
+      "headway_rush": 5,
+      "headway_normal": 10,
+      "first_train": "06:30",
+      "last_train": "23:00",
+      "ring": false,
+      "directions": [
+        {
+          "label": "深圳技术大学方向",
+          "terminal": "深圳技术大学",
+          "reverse": false
+        },
+        {
+          "label": "坪山高铁站方向",
+          "terminal": "坪山高铁站",
           "reverse": false
         }
       ]
